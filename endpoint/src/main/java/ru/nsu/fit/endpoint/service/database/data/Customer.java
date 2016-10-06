@@ -48,9 +48,9 @@ public class Customer {
 
         if(evaluatePassword(pass) <= 50) throw new BadCustomerPasswordException( BadCustomerPasswordException.EASY_PASSWORD_MESSAGE );
 
-        if(pass.contains(login)) throw new BadCustomerPasswordException( BadCustomerPasswordException.PASSWORD_CONTAINS_LOGIN_MESSAGE );
-        if(pass.contains(firstName)) throw new BadCustomerPasswordException( BadCustomerPasswordException.PASSWORD_CONTAINS_FIRSTNAME_MESSAGE );
-        if(pass.contains(lastName)) throw new BadCustomerPasswordException( BadCustomerPasswordException.PASSWORD_CONTAINS_LASTNAME_MESSAGE );
+        if(pass.toLowerCase().contains(login.toLowerCase())) throw new BadCustomerPasswordException( BadCustomerPasswordException.PASSWORD_CONTAINS_LOGIN_MESSAGE );
+        if(pass.toLowerCase().contains(firstName.toLowerCase())) throw new BadCustomerPasswordException( BadCustomerPasswordException.PASSWORD_CONTAINS_FIRSTNAME_MESSAGE );
+        if(pass.toLowerCase().contains(lastName.toLowerCase())) throw new BadCustomerPasswordException( BadCustomerPasswordException.PASSWORD_CONTAINS_LASTNAME_MESSAGE );
     }
 
     private void validateLogin(String login) throws BadCustomerLoginException {
