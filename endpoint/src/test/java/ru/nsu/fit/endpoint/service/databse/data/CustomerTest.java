@@ -156,4 +156,11 @@ public class CustomerTest {
         expectedEx.expectMessage(BadCustomerPasswordException.EASY_PASSWORD_MESSAGE);
         new Customer("John", "Wick", "john_wick@gmail.com", "123qwe", 0);
     }
+    
+    @Test
+    public void MoneyNegative() throws BadCustomerException{
+        expectedEx.expect(BadCustomerAccountException.class);
+        expectedEx.expectMessage(BadCustomerAccountException.NEGATIVE_ACCOUNT);
+        new Customer("John", "Wick", "john_wick@gmail.com", "wickA2C", -1);
+    }
 }
