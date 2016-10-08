@@ -71,8 +71,8 @@ public class Customer {
         if(lastName.length() > 12) { throw new BadCustomerLastNameException( BadCustomerLastNameException.LONG_LASTNAME_MESSAGE); }
     }
 
-    private void validateMoney(int money) throws NegativeCustomerMoneyException {
-        if(money < 0) { throw new NegativeCustomerMoneyException( NegativeCustomerMoneyException.NEGATIVE_MONEY_MESSAGE); }
+    private void validateMoney(int money) throws BadCustomerAccountException {
+        if(money < 0) { throw new BadCustomerAccountException( BadCustomerAccountException.NEGATIVE_ACCOUNT); }
     }
 
     private int evaluatePassword(String password) {

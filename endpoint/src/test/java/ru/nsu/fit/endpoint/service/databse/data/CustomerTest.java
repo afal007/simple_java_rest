@@ -161,6 +161,6 @@ public class CustomerTest {
     public void MoneyNegative() throws BadCustomerException{
         expectedEx.expect(BadCustomerAccountException.class);
         expectedEx.expectMessage(BadCustomerAccountException.NEGATIVE_ACCOUNT);
-        new Customer("John", "Wick", "john_wick@gmail.com", "wickA2C", -1);
+        new Customer("John", "Wick", "john_wick@gmail.com", "Strongpass1", -1);
     }
 }
