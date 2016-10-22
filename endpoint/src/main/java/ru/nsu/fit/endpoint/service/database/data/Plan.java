@@ -7,7 +7,7 @@ import java.util.UUID;
 /**
  * @author Timur Zolotuhin (tzolotuhin@gmail.com)
  */
-public class ServicePlan {
+public class Plan {
     private UUID id;
     /* Длина не больше 128 символов и не меньше 2 включительно не содержит спец символов */
     private String name;

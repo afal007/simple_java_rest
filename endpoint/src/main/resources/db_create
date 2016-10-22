@@ -1,0 +1,48 @@
+# Create user (execute under root)
+CREATE USER 'user'@'localhost' IDENTIFIED BY 'user';
+GRANT ALL PRIVILEGES ON *.* TO 'user'@'localhost' WITH GRANT OPTION;
+
+# Create database (execute under the user)
+CREATE DATABASE testmethods;
+USE testmethods;
+
+# Create tables
+CREATE TABLE `CUSTOMER` (
+	`id` TEXT NOT NULL,
+	`first_name` TEXT NOT NULL,
+	`last_name` TEXT NOT NULL,
+	`login` TEXT NOT NULL,
+	`pass` TEXT NOT NULL,
+	`money` INT(11) NOT NULL DEFAULT '0'
+);
+
+CREATE TABLE `PLAN` (
+	`id` TEXT NOT NULL,
+	`name` TEXT NOT NULL,
+	`details` TEXT NOT NULL,
+	`min_seats` INT(11) NOT NULL,
+	`max_seats` INT(11) NOT NULL,
+	`fee_per_seat` INT(11) NOT NULL
+);
+
+CREATE TABLE `SUBSCRIPTION` (
+	`id` TEXT NOT NULL,
+	`plan_id` TEXT NOT NULL,
+	`customer_id` TEXT NOT NULL,
+	`used_seats` INT(11) NOT NULL
+);
+
+CREATE TABLE `USER` (
+	`id` TEXT NULL,
+	`customer_id` TEXT NULL,
+	`first_name` TEXT NOT NULL,
+	`last_name` TEXT NOT NULL,
+	`login` TEXT NOT NULL,
+	`pass` TEXT NOT NULL,
+	`user_role` TEXT NOT NULL
+);
+
+CREATE TABLE `USER_ASSIGNMENT` (
+	`user_id` TEXT NOT NULL,
+	`subscription_id` TEXT NOT NULL
+);
