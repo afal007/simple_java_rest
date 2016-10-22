@@ -20,7 +20,7 @@ public class Plan {
     /* Больше ли равно 0 но меньше либо равно 999999 */
     private int feePerUnit;
 
-    public ServicePlan(String name, String details, int maxSeats, int minSeats, int feePerUnit) throws BadServicePlanException {
+    public Plan(String name, String details, int maxSeats, int minSeats, int feePerUnit) throws BadPlanException {
         validate(name, details, maxSeats, minSeats, feePerUnit);
 
         this.id = UUID.randomUUID();
@@ -31,7 +31,7 @@ public class Plan {
         this.feePerUnit = feePerUnit;
     }
 
-    private void validate(String name, String details, int maxSeats, int minSeats, int feePerUnit) throws BadServicePlanException {
+    private void validate(String name, String details, int maxSeats, int minSeats, int feePerUnit) throws BadPlanException {
         validateName(name);
         validateDetails(details);
         validateMaxSeats(maxSeats, minSeats);
@@ -39,31 +39,31 @@ public class Plan {
         validateFee(feePerUnit);
     }
 
-    private void validateName(String name) throws BadServicePlanNameException {
-        if(name.length() > 128) throw new BadServicePlanNameException( BadServicePlanNameException.LONG_NAME_MESSAGE );
-        if(name.length() < 2) throw new BadServicePlanNameException( BadServicePlanNameException.SHORT_NAME_MESSAGE );
+    private void validateName(String name) throws BadPlanNameException {
+        if(name.length() > 128) throw new BadPlanNameException( BadPlanNameException.LONG_NAME_MESSAGE );
+        if(name.length() < 2) throw new BadPlanNameException( BadPlanNameException.SHORT_NAME_MESSAGE );
 
-        if(!name.matches("[A-z]*")) throw new BadServicePlanNameException( BadServicePlanNameException.WRONG_SYMBOLS_MESSAGE );
+        if(!name.matches("[A-z]*")) throw new BadPlanNameException( BadPlanNameException.WRONG_SYMBOLS_MESSAGE );
     }
 
-    private void validateDetails(String details) throws BadServicePlanDetailsException {
-        if(details.length() > 1024) throw new BadServicePlanDetailsException( BadServicePlanDetailsException.LONG_DETAILS_MESSAGE );
-        if(details.length() < 1) throw new BadServicePlanDetailsException( BadServicePlanDetailsException.SHORT_DETAILS_MESSAGE );
+    private void validateDetails(String details) throws BadPlanDetailsException {
+        if(details.length() > 1024) throw new BadPlanDetailsException( BadPlanDetailsException.LONG_DETAILS_MESSAGE );
+        if(details.length() < 1) throw new BadPlanDetailsException( BadPlanDetailsException.SHORT_DETAILS_MESSAGE );
     }
 
-    private void validateMaxSeats(int maxSeats, int minSeats) throws BadServicePlanMaxSeatsException {
-        if(maxSeats > 999999) throw new BadServicePlanMaxSeatsException( BadServicePlanMaxSeatsException.BIG_MAXSEATS_MESSAGE );
-        if(maxSeats < 1) throw new BadServicePlanMaxSeatsException( BadServicePlanMaxSeatsException.SMALL_MAXSEATS_MESSAGE );
-        if(minSeats > maxSeats) throw new BadServicePlanMaxSeatsException(BadServicePlanMaxSeatsException.LESS_THAN_MINSEATS_MESSAGE);
+    private void validateMaxSeats(int maxSeats, int minSeats) throws BadPlanMaxSeatsException {
+        if(maxSeats > 999999) throw new BadPlanMaxSeatsException( BadPlanMaxSeatsException.BIG_MAXSEATS_MESSAGE );
+        if(maxSeats < 1) throw new BadPlanMaxSeatsException( BadPlanMaxSeatsException.SMALL_MAXSEATS_MESSAGE );
+        if(minSeats > maxSeats) throw new BadPlanMaxSeatsException(BadPlanMaxSeatsException.LESS_THAN_MINSEATS_MESSAGE);
     }
 
-    private void validateMinSeats(int minSeats) throws BadServicePlanMinSeatsException {
-        if(minSeats > 999999) throw new BadServicePlanMinSeatsException( BadServicePlanMinSeatsException.BIG_MINSEATS_MESSAGE );
-        if(minSeats < 1) throw new BadServicePlanMinSeatsException( BadServicePlanMinSeatsException.SMALL_MINSEATS_MESSAGE );
+    private void validateMinSeats(int minSeats) throws BadPlanMinSeatsException {
+        if(minSeats > 999999) throw new BadPlanMinSeatsException( BadPlanMinSeatsException.BIG_MINSEATS_MESSAGE );
+        if(minSeats < 1) throw new BadPlanMinSeatsException( BadPlanMinSeatsException.SMALL_MINSEATS_MESSAGE );
     }
 
-    private void validateFee(int fee) throws BadServicePlanFeeException {
-        if(fee < 0) throw new BadServicePlanFeeException( BadServicePlanFeeException.NEGATIVE_FEE_MESSAGE );
-        if(fee > 999999) throw new BadServicePlanFeeException( BadServicePlanFeeException.BIG_FEE_MESSAGE );
+    private void validateFee(int fee) throws BadPlanFeeException {
+        if(fee < 0) throw new BadPlanFeeException( BadPlanFeeException.NEGATIVE_FEE_MESSAGE );
+        if(fee > 999999) throw new BadPlanFeeException( BadPlanFeeException.BIG_FEE_MESSAGE );
     }
 }

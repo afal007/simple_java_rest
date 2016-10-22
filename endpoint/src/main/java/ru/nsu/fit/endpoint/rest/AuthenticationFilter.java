@@ -37,6 +37,7 @@ public class AuthenticationFilter implements javax.ws.rs.container.ContainerRequ
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
+    	System.err.println("WASD WASD WASD WASD");
         Method method = resourceInfo.getResourceMethod();
         //Access allowed for all
         if (!method.isAnnotationPresent(PermitAll.class)) {
@@ -49,10 +50,9 @@ public class AuthenticationFilter implements javax.ws.rs.container.ContainerRequ
 
             //Get request headers
             final MultivaluedMap<String, String> headers = requestContext.getHeaders();
-
+            System.err.println(headers.toString());
             //Fetch authorization header
             final List<String> authorization = headers.get(AUTHORIZATION_PROPERTY);
-
             //If no authorization information present; block access
             if (authorization == null || authorization.isEmpty()) {
                 Response ACCESS_DENIED = Response.status(Response.Status.UNAUTHORIZED).entity("You cannot access this resource").build();
@@ -73,8 +73,8 @@ public class AuthenticationFilter implements javax.ws.rs.container.ContainerRequ
             final String password = tokenizer.nextToken();
 
             //Verifying Username and password
-            System.out.println(username);
-            System.out.println(password);
+            System.err.println(username);
+            System.err.println(password);
 
             //Verify user access
             if (method.isAnnotationPresent(RolesAllowed.class)) {
