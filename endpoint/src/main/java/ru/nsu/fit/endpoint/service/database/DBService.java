@@ -12,7 +12,7 @@ import java.util.UUID;
  */
 public class DBService {
     // Constants
-    private static final String INSERT_CUSTOMER = "INSERT INTO CUSTOMER(id, first_name, last_name, login, pass, money) values ('%s', '%s', '%s', '%s', '%s', %s)";
+    private static final String INSERT_CUSTOMER = "INSERT INTO CUSTOMER(id, firstName, lastName, login, pass, money) values ('%s', '%s', '%s', '%s', '%s', %s)";
     private static final String SELECT_CUSTOMER = "SELECT id FROM CUSTOMER WHERE login='%s'";
 
     private static final Logger logger = LoggerFactory.getLogger("DB_LOG");
@@ -24,6 +24,8 @@ public class DBService {
     }
 
     public static void createCustomer(Customer.CustomerData customerData) {
+    	logger.info("info log level works");
+    	logger.debug("debug log level works");
         synchronized (generalMutex) {
             logger.info("Try to create customer");
 
@@ -48,7 +50,7 @@ public class DBService {
 
     public static UUID getCustomerIdByLogin(String customerLogin) {
         synchronized (generalMutex) {
-            logger.info("Try to create customer");
+            logger.info("Try to GET customer");
 
             try {
                 Statement statement = connection.createStatement();
