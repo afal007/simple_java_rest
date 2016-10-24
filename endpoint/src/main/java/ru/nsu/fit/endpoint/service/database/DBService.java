@@ -68,7 +68,8 @@ public class DBService {
         }
     }
 
-    private static void init() {
+    private static void init() {    	
+    	org.apache.log4j.BasicConfigurator.configure();
         logger.debug("-------- MySQL JDBC Connection Testing ------------");
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");

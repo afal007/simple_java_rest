@@ -22,6 +22,7 @@ public class RestService {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createCustomer(String customerDataJson) {
         try {
+        	System.err.println(customerDataJson);
             Customer.CustomerData customerData = JsonMapper.fromJson(customerDataJson, Customer.CustomerData.class);
             DBService.createCustomer(customerData);
             return Response.status(200).entity(customerData.toString()).build();
