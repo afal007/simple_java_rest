@@ -3,6 +3,7 @@ package ru.nsu.fit.endpoint.service.database;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.nsu.fit.endpoint.service.database.data.Customer;
+import ru.nsu.fit.endpoint.service.database.exceptions.BadCustomerException;
 
 import java.sql.*;
 import java.util.UUID;
@@ -23,7 +24,7 @@ public class DBService {
         init();
     }
 
-    public static void createCustomer(Customer.CustomerData customerData) {
+    public static void createCustomer(Customer.CustomerData customerData) throws BadCustomerException {
     	logger.info("info log level works");
     	logger.debug("debug log level works");
         synchronized (generalMutex) {

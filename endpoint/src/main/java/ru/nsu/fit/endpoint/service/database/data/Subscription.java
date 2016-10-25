@@ -1,46 +1,81 @@
 package ru.nsu.fit.endpoint.service.database.data;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.UUID;
-import ru.nsu.fit.endpoint.service.database.exceptions.BadSubscriptionException;
 
 /**
- * @author Timur Zolotuhin (tzolotuhin@gmail.com)
+ * @author Alexander Fal (falalexandr007@gmail.com)
  */
-public class Subscription {
+public class Subscription extends Entity<Subscription.SubscriptionData>{
     private UUID id;
     private UUID customerId;
     private UUID servicePlanId;
-    private int maxSeats; //same restrictions as in ServicePlan (?)
-    private int minSeats; //same restrictions as in ServicePlan (?)
-    private int usedSeats; // maxSeats >= usedSeats >= minSeats
-    
-    public Subscription(int maxSeats, int minSeats, int usedSeats) throws BadSubscriptionException{
-    	this.id = UUID.randomUUID();
-    	this.customerId = UUID.randomUUID();
-    	this.servicePlanId = UUID.randomUUID();
-    	this.maxSeats = maxSeats;
-    	this.minSeats = minSeats;
-    	this.usedSeats = usedSeats;
-    	
-    	validate();
-    }
-    
-    private void validate() throws BadSubscriptionException {
-    	validateMaxSeats();
-    	validateMinSeats();
-    }
-    
-    private void validateMaxSeats() throws BadSubscriptionException {
-        if(maxSeats > 999999) throw new BadSubscriptionException( BadSubscriptionException.BIG_MAXSEATS_MESSAGE );
-        if(maxSeats < 1) throw new BadSubscriptionException( BadSubscriptionException.SMALL_MAXSEATS_MESSAGE );
-        if(minSeats > maxSeats) throw new BadSubscriptionException(BadSubscriptionException.MAXSEATS_LESS_THAN_MINSEATS_MESSAGE);
-        if(usedSeats > maxSeats) throw new BadSubscriptionException(BadSubscriptionException.MAXSEATS_LESS_THAN_USEDSEATS_MESSAGE);
+
+    public Subscription(SubscriptionData data, UUID id, UUID customerId, UUID servicePlanId) {
+        super(data);
+        this.id = id;
+        this.customerId = customerId;
+        this.servicePlanId = servicePlanId;
     }
 
-    private void validateMinSeats() throws BadSubscriptionException {
-        if(minSeats > 999999) throw new BadSubscriptionException( BadSubscriptionException.BIG_MINSEATS_MESSAGE );
-        if(minSeats < 1) throw new BadSubscriptionException( BadSubscriptionException.SMALL_MINSEATS_MESSAGE );
-        if(minSeats > usedSeats) throw new BadSubscriptionException(BadSubscriptionException.MINSEATS_GREATER_THAN_USEDSEATS_MESSAGE);
+    public UUID getId() {
+        return id;
+    }
+    public void setId(UUID id) {
+        this.id = id;
+    }
+    public UUID getCustomerId() {
+        return customerId;
+    }
+    public void setCustomerId(UUID customerId) {
+        this.customerId = customerId;
+    }
+    public UUID getServicePlanId() {
+        return servicePlanId;
+    }
+    public void setServicePlanId(UUID servicePlanId) {
+        this.servicePlanId = servicePlanId;
+    }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class SubscriptionData {
+        @JsonProperty("usedSeats")
+        private int usedSeats;
+        @JsonProperty("status")
+        private Status status;
+
+        public static enum Status {
+            PROVISIONING("Provisioning"),
+            DONE("Done");
+
+            private String statusName;
+
+            Status(String status) {
+                statusName = status;
+            }
+
+            public void setStatusName(String statusName) {
+                this.statusName = statusName;
+            }
+
+            public String getStatusName() {
+                return statusName;
+            }
+        }
+
+        public SubscriptionData(Status status) {
+            this.usedSeats = 1;
+            this.status = status;
+        }
+
+        @Override
+        public String toString() {
+            return "SubscriptionData{" +
+                    "usedSeats=" + usedSeats +
+                    ", status=" + status +
+                    '}';
+        }
     }
 }

@@ -1,18 +1,19 @@
 package ru.nsu.fit.endpoint.service.database.data;
 
+import org.apache.commons.validator.routines.EmailValidator;
+import ru.nsu.fit.endpoint.service.database.exceptions.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang.Validate;
 
 import java.util.UUID;
 
 /**
- * @author Timur Zolotuhin (tzolotuhin@gmail.com)
+ * @author Alexander Fal (falalexandr007@gmail.com)
  */
-public class Customer extends Entity<Customer.CustomerData>  {
+public class Customer extends Entity<Customer.CustomerData> {
     private UUID id;
 
-    public Customer(CustomerData data, UUID id) {
+    public Customer(CustomerData data, UUID id) throws BadCustomerException {
         super(data);
         this.id = id;
         data.validate();
@@ -44,44 +45,18 @@ public class Customer extends Entity<Customer.CustomerData>  {
         @JsonProperty("money")
         private int money;
 
-        private CustomerData() {}
-
-        public CustomerData(String firstName, String lastName, String login, String pass, int money) {
-            this.firstName = firstName;
-            this.lastName = lastName;
-            this.login = login;
-            this.pass = pass;
-            this.money = money;
-            validate(firstName, lastName, login, pass, money);
-        }
-
-        public void validate() {
-            validate(firstName, lastName, login, pass, money);
-        }
-
-        public static void validate(String firstName, String lastName, String login, String pass, int money) {
-            Validate.notNull(pass);
-            Validate.isTrue(pass.length() >= 6 && pass.length() < 13, "Password's length should be more or equal 6 symbols and less or equal 12 symbols");
-            Validate.isTrue(!pass.equalsIgnoreCase("123qwe"), "Password is easy");
-            Validate.isTrue(money >= 0, "Money must be positive value");
-        }
-
         public String getFirstName() {
             return firstName;
         }
-
         public String getLastName() {
             return lastName;
         }
-
         public String getLogin() {
             return login;
         }
-
         public String getPass() {
             return pass;
         }
-
         public int getMoney() {
             return money;
         }
@@ -96,5 +71,80 @@ public class Customer extends Entity<Customer.CustomerData>  {
                     ", money=" + money +
                     '}';
         }
+
+        private CustomerData() {}
+
+        public CustomerData(String firstName, String lastName, String login, String pass, int money) throws BadCustomerException {
+            this.firstName = firstName;
+            this.lastName = lastName;
+            this.login = login;
+            this.pass = pass;
+            this.money = money;
+            validate(firstName, lastName, login, pass, money);
+        }
+
+        public void validate() throws BadCustomerException {
+            validate(firstName, lastName, login, pass, money);
+        }
+
+        private void validate(String firstName, String lastName, String login, String pass, int money) throws BadCustomerException {
+            validatePassword(pass);
+            validateLogin(login);
+            validateFirstName(firstName);
+            validateLastName(lastName);
+            validateMoney(money);
+        }
+
+        private void validatePassword(String pass) throws BadCustomerPasswordException {
+            if(pass == null || pass.equals("")) throw new BadCustomerPasswordException( BadCustomerPasswordException.EMPTY_PASSWORD_MESSAGE );
+
+            if(pass.length() < 6) throw new BadCustomerPasswordException( BadCustomerPasswordException.SHORT_PASSWORD_MESSAGE );
+            if(pass.length() > 12) throw new BadCustomerPasswordException( BadCustomerPasswordException.LONG_PASSWORD_MESSAGE );
+
+            if(evaluatePassword(pass) <= 50) throw new BadCustomerPasswordException( BadCustomerPasswordException.EASY_PASSWORD_MESSAGE );
+
+            if(pass.contains(login)) throw new BadCustomerPasswordException( BadCustomerPasswordException.PASSWORD_CONTAINS_LOGIN_MESSAGE );
+            if(pass.contains(firstName)) throw new BadCustomerPasswordException( BadCustomerPasswordException.PASSWORD_CONTAINS_FIRSTNAME_MESSAGE );
+            if(pass.contains(lastName)) throw new BadCustomerPasswordException( BadCustomerPasswordException.PASSWORD_CONTAINS_LASTNAME_MESSAGE );
+        }
+
+        private void validateLogin(String login) throws BadCustomerLoginException {
+            if(!EmailValidator.getInstance().isValid(login)) { throw new BadCustomerLoginException(BadCustomerLoginException.INVALID_LOGIN_MESSAGE); }
+        }
+
+        private void validateFirstName(String firstName) throws BadCustomerFirstNameException {
+            if(!firstName.matches("^[A-Z][a-z]*")) { throw new BadCustomerFirstNameException( BadCustomerFirstNameException.WRONG_SYMBOLS_MESSAGE); }
+
+            if(firstName.length() < 2) { throw new BadCustomerFirstNameException( BadCustomerFirstNameException.SHORT_FIRSTNAME_MESSAGE); }
+            if(firstName.length() > 12) { throw new BadCustomerFirstNameException( BadCustomerFirstNameException.LONG_FIRSTNAME_MESSAGE); }
+        }
+
+        private void validateLastName(String lastName) throws BadCustomerLastNameException {
+            if(!lastName.matches("^[A-Z][a-z]*")) { throw new BadCustomerLastNameException( BadCustomerLastNameException.WRONG_SYMBOLS_MESSAGE); }
+
+            if(lastName.length() < 2) { throw new BadCustomerLastNameException( BadCustomerLastNameException.SHORT_LASTNAME_MESSAGE); }
+            if(lastName.length() > 12) { throw new BadCustomerLastNameException( BadCustomerLastNameException.LONG_LASTNAME_MESSAGE); }
+        }
+
+        private void validateMoney(int money) throws BadCustomerAccountException {
+            if(money < 0) { throw new BadCustomerAccountException( BadCustomerAccountException.NEGATIVE_ACCOUNT); }
+        }
+
+        private int evaluatePassword(String password) {
+            String[] regexChecks = {".*[a-z]+.*", //lower
+                    ".*[A-Z]+.*", //upper
+                    ".*[\\d]+.*", //digits
+                    ".*[@%#&.]+.*" //symbols
+            };
+            int res = 0;
+
+            for (String reg : regexChecks)
+                if (password.matches(reg))
+                    res += 25;
+
+            return res;
+        }
+
+
     }
 }
