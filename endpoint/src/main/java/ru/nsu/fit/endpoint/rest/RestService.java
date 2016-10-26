@@ -37,6 +37,18 @@ public class RestService {
         }
     }
     
+    @RolesAllowed("ADMIN")
+    @POST
+    @Path("/delete_customer/{customer_login}")
+    public Response deleteCustomer(@PathParam("customer_login") String customerLogin){
+    	try{
+    		DBService.deleteCustomer(customerLogin); //TODO add negative response if no customer found
+    		return Response.status(200).entity("Customer " + customerLogin + " is now deleted").build();
+    	} catch (RuntimeException ex){
+    		return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+    	}
+    }
+    
     @RolesAllowed("CUSTOMER")
     @POST
     @Path("/create_user")

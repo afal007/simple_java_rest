@@ -17,7 +17,8 @@ public class DBService {
     // Constants
     private static final String INSERT_CUSTOMER = "INSERT INTO CUSTOMER(id, first_name, last_name, login, pass, money) values ('%s', '%s', '%s', '%s', '%s', %s)";
     private static final String SELECT_CUSTOMER = "SELECT id FROM CUSTOMER WHERE login='%s'";
-
+    private static final String DELETE_CUSTOMER = "DELETE FROM CUSTOMER WHERE login='%s'";
+    
     private static final String INSERT_USER = "INSERT INTO USER(id, customer_id, first_name, last_name, login, pass, user_role) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s')";
     private static final String SELECT_USER = "SELECT id FROM USER WHERE login='%s'";
     
@@ -68,6 +69,23 @@ public class DBService {
                                 customer.getData().getLogin(),
                                 customer.getData().getPass(),
                                 customer.getData().getMoney()));
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+    
+    public static void deleteCustomer(String customerLogin){
+    	synchronized (generalMutex) {
+            logger.info("Try to delete customer");
+
+            try {
+            	Statement statement = connection.createStatement();
+                statement.executeUpdate(
+                        String.format(
+                                DELETE_CUSTOMER,
+                                customerLogin));
             } catch (SQLException ex) {
                 logger.debug(ex.getMessage(), ex);
                 throw new RuntimeException(ex);
