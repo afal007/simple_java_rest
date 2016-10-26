@@ -9,12 +9,13 @@ import java.sql.*;
 import java.util.UUID;
 
 /**
- * @author Timur Zolotuhin (tzolotuhin@gmail.com)
+ * @author Alexander Fal (falalexandr007@gmail.com)
  */
 public class DBService {
     // Constants
-    private static final String INSERT_CUSTOMER = "INSERT INTO CUSTOMER(id, firstName, lastName, login, pass, money) values ('%s', '%s', '%s', '%s', '%s', %s)";
-    private static final String SELECT_CUSTOMER = "SELECT id FROM CUSTOMER WHERE login='%s'";
+    private static final String INSERT_CUSTOMER = "INSERT INTO CUSTOMER(id, first_name, last_name, login, pass, money) values ('%s', '%s', '%s', '%s', '%s', %s)";
+    private static final String SELECT_CUSTOMER_ID = "SELECT id FROM CUSTOMER WHERE login='%s'";
+    private static final String SELECT_CUSTOMER = "SELECT * FROM CUSTOMER WHERE id='%s'";
 
     private static final Logger logger = LoggerFactory.getLogger("DB_LOG");
     private static final Object generalMutex = new Object();
@@ -25,8 +26,6 @@ public class DBService {
     }
 
     public static void createCustomer(Customer.CustomerData customerData) throws BadCustomerException {
-    	logger.info("info log level works");
-    	logger.debug("debug log level works");
         synchronized (generalMutex) {
             logger.info("Try to create customer");
 
@@ -51,13 +50,13 @@ public class DBService {
 
     public static UUID getCustomerIdByLogin(String customerLogin) {
         synchronized (generalMutex) {
-            logger.info("Try to GET customer");
+            logger.info("Try to create customer");
 
             try {
                 Statement statement = connection.createStatement();
                 ResultSet rs = statement.executeQuery(
                         String.format(
-                                SELECT_CUSTOMER,
+                                SELECT_CUSTOMER_ID,
                                 customerLogin));
                 if (rs.next()) {
                     return UUID.fromString(rs.getString(1));
@@ -71,8 +70,39 @@ public class DBService {
         }
     }
 
-    private static void init() {    	
-    	org.apache.log4j.BasicConfigurator.configure();
+    public static Customer getCustomerById(UUID customerId) {
+        synchronized (generalMutex) {
+            logger.info("Try to get Customer by id");
+
+            try {
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(
+                        String.format(
+                                SELECT_CUSTOMER_ID,
+                                customerId.toString()));
+                if(rs.next()) {
+                    UUID id = UUID.fromString(rs.getString("id"));
+                    String firstName = rs.getString("first_name");
+                    String lastName = rs.getString("last_name");
+                    String login = rs.getString("login");
+                    Integer money = rs.getInt("money");
+                    String pass = rs.getString("pass");
+
+                    return new Customer(new Customer.CustomerData(firstName, lastName, login, pass, money), id);
+                }
+                else {
+                    throw new IllegalArgumentException("Customer with id '" + customerId + " was not found");
+                }
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            } catch (BadCustomerException ex) {
+                throw new RuntimeException("This should never happen, because we create customer from database data which was already verified");
+            }
+        }
+    }
+
+    private static void init() {
         logger.debug("-------- MySQL JDBC Connection Testing ------------");
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -84,6 +114,7 @@ public class DBService {
         logger.debug("MySQL JDBC Driver Registered!");
 
         try {
+            // 178.49.4.144 MySQL server home, user: test_methods_remote_user, pass: 1q2w3e
             connection = DriverManager
                     .getConnection(
                             "jdbc:mysql://localhost:3306/testmethods?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false",

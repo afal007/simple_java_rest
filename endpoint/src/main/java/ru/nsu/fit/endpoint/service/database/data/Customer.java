@@ -11,6 +11,8 @@ import java.util.UUID;
  * @author Alexander Fal (falalexandr007@gmail.com)
  */
 public class Customer extends Entity<Customer.CustomerData> {
+
+    @JsonProperty("id")
     private UUID id;
 
     public Customer(CustomerData data, UUID id) throws BadCustomerException {
@@ -45,33 +47,6 @@ public class Customer extends Entity<Customer.CustomerData> {
         @JsonProperty("money")
         private int money;
 
-        public String getFirstName() {
-            return firstName;
-        }
-        public String getLastName() {
-            return lastName;
-        }
-        public String getLogin() {
-            return login;
-        }
-        public String getPass() {
-            return pass;
-        }
-        public int getMoney() {
-            return money;
-        }
-
-        @Override
-        public String toString() {
-            return "CustomerData{" +
-                    "firstName='" + firstName + '\'' +
-                    ", lastName='" + lastName + '\'' +
-                    ", login='" + login + '\'' +
-                    ", pass='" + pass + '\'' +
-                    ", money=" + money +
-                    '}';
-        }
-
         private CustomerData() {}
 
         public CustomerData(String firstName, String lastName, String login, String pass, int money) throws BadCustomerException {
@@ -83,7 +58,7 @@ public class Customer extends Entity<Customer.CustomerData> {
             validate(firstName, lastName, login, pass, money);
         }
 
-        public void validate() throws BadCustomerException {
+        void validate() throws BadCustomerException {
             validate(firstName, lastName, login, pass, money);
         }
 
@@ -127,7 +102,7 @@ public class Customer extends Entity<Customer.CustomerData> {
         }
 
         private void validateMoney(int money) throws BadCustomerAccountException {
-            if(money < 0) { throw new BadCustomerAccountException( BadCustomerAccountException.NEGATIVE_ACCOUNT); }
+            if(money < 0) { throw new BadCustomerAccountException(BadCustomerAccountException.NEGATIVE_ACCOUNT); }
         }
 
         private int evaluatePassword(String password) {
@@ -145,6 +120,35 @@ public class Customer extends Entity<Customer.CustomerData> {
             return res;
         }
 
+        public String getFirstName() {
+            return firstName;
+        }
 
+        public String getLastName() {
+            return lastName;
+        }
+
+        public String getLogin() {
+            return login;
+        }
+
+        public String getPass() {
+            return pass;
+        }
+
+        public int getMoney() {
+            return money;
+        }
+
+        @Override
+        public String toString() {
+            return "CustomerData{" +
+                    "firstName='" + firstName + '\'' +
+                    ", lastName='" + lastName + '\'' +
+                    ", login='" + login + '\'' +
+                    ", pass='" + pass + '\'' +
+                    ", money=" + money +
+                    '}';
+        }
     }
 }
