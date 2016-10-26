@@ -4,18 +4,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.nsu.fit.endpoint.service.database.data.Customer;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadCustomerException;
+import ru.nsu.fit.endpoint.service.database.data.User;
+import ru.nsu.fit.endpoint.service.database.exceptions.BadUserException;
 
 import java.sql.*;
 import java.util.UUID;
 
 /**
  * @author Alexander Fal (falalexandr007@gmail.com)
+ * @author Konstantin Vysotski
  */
 public class DBService {
     // Constants
-    private static final String INSERT_CUSTOMER = "INSERT INTO CUSTOMER(id, first_name, last_name, login, pass, money) values ('%s', '%s', '%s', '%s', '%s', %s)";
+    private static final String INSERT_CUSTOMER = "INSERT INTO CUSTOMER(id, firstName, lastName, login, pass, money) values ('%s', '%s', '%s', '%s', '%s', %s)";
     private static final String SELECT_CUSTOMER_ID = "SELECT id FROM CUSTOMER WHERE login='%s'";
     private static final String SELECT_CUSTOMER = "SELECT * FROM CUSTOMER WHERE id='%s'";
+    private static final String DELETE_CUSTOMER = "DELETE FROM CUSTOMER WHERE login='%s'";
+
+    private static final String INSERT_USER = "INSERT INTO USER(id, customer_id, first_name, last_name, login, pass, user_role) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s')";
+    private static final String SELECT_USER = "SELECT id FROM USER WHERE login='%s'";
+
 
     private static final Logger logger = LoggerFactory.getLogger("DB_LOG");
     private static final Object generalMutex = new Object();
@@ -25,7 +33,32 @@ public class DBService {
         init();
     }
 
+    public static void createUser(User.UserData userData, UUID customerId) throws BadUserException{
+    	synchronized(generalMutex){
+    		logger.info("Trying to create user");
+
+            User user = new User(userData, UUID.randomUUID(), customerId);
+            try {
+                Statement statement = connection.createStatement();
+                statement.executeUpdate(
+                        String.format(
+                                INSERT_USER,
+                                user.getId(),
+                                user.getCustomerId(),
+                                user.getData().getFirstName(),
+                                user.getData().getLastName(),
+                                user.getData().getLogin(),
+                                user.getData().getPass(),
+                                user.getData().getUserRole()));
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+    	}
+    }
     public static void createCustomer(Customer.CustomerData customerData) throws BadCustomerException {
+    	logger.info("info log level works");
+    	logger.debug("debug log level works");
         synchronized (generalMutex) {
             logger.info("Try to create customer");
 
@@ -48,6 +81,23 @@ public class DBService {
         }
     }
 
+    public static void deleteCustomer(String customerLogin){
+    	synchronized (generalMutex) {
+            logger.info("Try to delete customer");
+
+            try {
+            	Statement statement = connection.createStatement();
+                statement.executeUpdate(
+                        String.format(
+                                DELETE_CUSTOMER,
+                                customerLogin));
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
     public static UUID getCustomerIdByLogin(String customerLogin) {
         synchronized (generalMutex) {
             logger.info("Try to create customer");
@@ -61,7 +111,8 @@ public class DBService {
                 if (rs.next()) {
                     return UUID.fromString(rs.getString(1));
                 } else {
-                    throw new IllegalArgumentException("Customer with login '" + customerLogin + " was not found");
+                    //throw new IllegalArgumentException("Customer with login '" + customerLogin + " was not found");
+                	return new UUID(0L, 0L); // "00000000-0000-0000-0000-000000000000"
                 }
             } catch (SQLException ex) {
                 logger.debug(ex.getMessage(), ex);
