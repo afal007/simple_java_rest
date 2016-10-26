@@ -129,7 +129,7 @@ public class DBService {
                 Statement statement = connection.createStatement();
                 ResultSet rs = statement.executeQuery(
                         String.format(
-                                SELECT_CUSTOMER_ID,
+                                SELECT_CUSTOMER,
                                 customerId.toString()));
                 if(rs.next()) {
                     UUID id = UUID.fromString(rs.getString("id"));
