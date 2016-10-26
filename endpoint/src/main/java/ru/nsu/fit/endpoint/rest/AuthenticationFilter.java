@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.UUID;
 
 import javax.annotation.security.DenyAll;
 import javax.annotation.security.PermitAll;
@@ -19,6 +20,7 @@ import javax.ws.rs.ext.Provider;
 
 import org.glassfish.jersey.internal.util.Base64;
 
+import ru.nsu.fit.endpoint.service.database.DBService;
 
 /**
  * This filter verify the access permissions for a user
@@ -37,7 +39,6 @@ public class AuthenticationFilter implements javax.ws.rs.container.ContainerRequ
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
-    	System.err.println("WASD WASD WASD WASD");
         Method method = resourceInfo.getResourceMethod();
         //Access allowed for all
         if (!method.isAnnotationPresent(PermitAll.class)) {
@@ -98,15 +99,22 @@ public class AuthenticationFilter implements javax.ws.rs.container.ContainerRequ
         //If both match then get the defined role for user from database and continue; else return isAllowed [false]
         //Access the database and do this part yourself
         //String userRole = userMgr.getUserRole(username);
-
-        if (username.equals("admin") && password.equals("setup")) {
-            String userRole = "ADMIN";
-
+        String userRole = "";
+        if (username.equals("admin") && password.equals("setup")) 
+            userRole = "ADMIN";
+        else{
+	        UUID id;
+	        id = DBService.getCustomerIdByLogin(username);
+	        System.err.println(id.toString());
+	        if (! id.equals(new UUID(0L, 0L))) // id exists and not null. CHECK PASSWORD!
+	        	userRole = "CUSTOMER";
+        }
+        System.err.println(userRole);
             //Step 2. Verify user role
             if (rolesSet.contains(userRole)) {
                 isAllowed = true;
             }
-        }
+        
         return isAllowed;
     }
 }
