@@ -32,6 +32,9 @@ public class User extends Entity<User.UserData> {
     public UUID[] getSubscriptionIds() {
         return subscriptionIds;
     }
+    public void setSubscriptionIds(UUID[] ids){
+    	subscriptionIds = ids;
+    }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class UserData {
@@ -107,6 +110,17 @@ public class User extends Entity<User.UserData> {
             public String getRoleName() {
                 return roleName;
             }
+            
+            public static UserRole fromString(String text) {
+                if (text != null) {
+                  for (UserRole b : UserRole.values()) {
+                    if (text.equalsIgnoreCase(b.roleName)) {
+                      return b;
+                    }
+                  }
+                }
+                return null;
+              }
         }
 
         public UserData(String firstName, String lastName, String login, String pass, UserRole userRole) throws BadUserException {

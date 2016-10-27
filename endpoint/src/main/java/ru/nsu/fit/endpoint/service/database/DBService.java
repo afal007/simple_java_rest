@@ -5,11 +5,13 @@ import org.slf4j.LoggerFactory;
 import ru.nsu.fit.endpoint.service.database.data.Customer;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadCustomerException;
 import ru.nsu.fit.endpoint.service.database.data.User;
+import ru.nsu.fit.endpoint.service.database.data.User.UserData.UserRole;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadUserException;
 import ru.nsu.fit.endpoint.service.database.data.Plan;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
 
 import java.sql.*;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -28,9 +30,12 @@ public class DBService {
     private static final String DELETE_PLAN = "DELETE FROM PLAN WHERE id='%s'";
     
     private static final String INSERT_USER = "INSERT INTO USER(id, customer_id, first_name, last_name, login, pass, user_role) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s')";
-    private static final String SELECT_USER = "SELECT id FROM USER WHERE login='%s'";
-
-
+    private static final String SELECT_USER_ID = "SELECT id FROM USER WHERE login='%s'";
+    private static final String SELECT_USER_BY_ID = "SELECT * FROM USER WHERE id='%s'";
+    private static final String SELECT_USER_BY_LOGIN = "SELECT * FROM USER WHERE login='%s'";
+    private static final String SELECT_USER_SUBSCRIPTIONS_BY_ID = "SELECT subscription_id FROM USER_ASSIGNMENT WHERE user_id='%s'";
+    private static final String SELECT_USER_COUNT_SUBSCRIPTIONS = "SELECT COUNT(subscription_id) FROM USER_ASSIGNMENT WHERE user_id='%s'";
+    
     private static final Logger logger = LoggerFactory.getLogger("DB_LOG");
     private static final Object generalMutex = new Object();
     private static Connection connection;
@@ -142,12 +147,86 @@ public class DBService {
     }
     
     public static UUID getCustomerIdByLogin(String customerLogin) {
-    	Customer customer = getCustomerBy(QueryIndex.LOGIN, customerLogin);
-    	return customer.getId();
+    	try{
+    		Customer customer = getCustomerBy(QueryIndex.LOGIN, customerLogin);
+    		return customer.getId();
+    	}catch (IllegalArgumentException ex){ // thrown when user not found
+    		return new UUID(0L, 0L);
+    	}
     }
 
     public static Customer getCustomerById(UUID customerId) {
         return getCustomerBy(QueryIndex.ID, customerId.toString());
+    }
+    
+    public static User getUserBy(QueryIndex index, String key){
+    	synchronized (generalMutex){
+    		try {
+                Statement statement = connection.createStatement();
+                String query = new String();
+    			switch(index){
+    			case LOGIN:{
+    				query = String.format(SELECT_USER_BY_LOGIN, key);
+    				break;
+    			}
+    			case ID:{
+    				query = String.format(SELECT_USER_BY_ID, key);
+    				break;
+    			}
+    			}
+                ResultSet rs = statement.executeQuery(query);
+                if(rs.next()) {
+                    UUID id = UUID.fromString(rs.getString("id"));
+                    UUID customerId = UUID.fromString(rs.getString("customer_id"));
+                    String firstName = rs.getString("first_name");
+                    String lastName = rs.getString("last_name");
+                    String login = rs.getString("login");
+                    String pass = rs.getString("pass");
+                    UserRole userRole = UserRole.fromString(rs.getString("user_role"));
+
+                    User user = new User(new User.UserData(firstName, lastName, login, pass, userRole), id, customerId);
+                    
+                    //fetch subscriptions
+                    rs = statement.executeQuery(String.format(SELECT_USER_COUNT_SUBSCRIPTIONS, id));
+                    int count = 0;
+                    if (rs.next())
+                    	count = rs.getInt(1);
+                    if (count > 0) {
+	                    rs = statement.executeQuery(String.format(SELECT_USER_SUBSCRIPTIONS_BY_ID, id));
+	                    UUID[] subscriptionIds = new UUID[count];
+	                    int i = 0;
+	                    while(rs.next()){
+	                    	subscriptionIds[i] = (UUID.fromString(rs.getString("subscription_id")));
+	                    	i++;
+	                    }
+	                    user.setSubscriptionIds(subscriptionIds);
+                    }
+                    
+                    return user;
+                }
+                else {
+                    throw new IllegalArgumentException("User was not found");
+                }
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            } catch (BadUserException ex) {
+                throw new RuntimeException("This should never happen, because we create customer from database data which was already verified");
+            }
+    	}
+    }
+    
+    public static UUID getUserIdByLogin(String userLogin) {
+    	try{
+    		User user = getUserBy(QueryIndex.LOGIN, userLogin);
+    		return user.getId();
+    	}catch (IllegalArgumentException ex){ // thrown when user not found
+    		return new UUID(0L, 0L);
+    	}
+    }
+
+    public static User getUserById(UUID userId) {
+        return getUserBy(QueryIndex.ID, userId.toString());
     }
     
     public static void createPlan(Plan.PlanData planData) throws BadPlanException{

@@ -102,13 +102,24 @@ public class AuthenticationFilter implements javax.ws.rs.container.ContainerRequ
         String userRole = "";
         if (username.equals("admin") && password.equals("setup")) 
             userRole = "ADMIN";
-        else{
+        else{ // this is bad
 	        UUID id;
 	        id = DBService.getCustomerIdByLogin(username);
-	        String customerPass = DBService.getCustomerById(id).getData().getPass();
-	        System.err.println(id.toString());
-	        if (!id.equals(new UUID(0L, 0L)) && (password.equals(customerPass) )) // id exists and not null.
-	        	userRole = "CUSTOMER";
+	        if (!id.equals(new UUID(0L, 0L))){
+	        	String customerPass = DBService.getCustomerById(id).getData().getPass();
+	        	System.err.println(id.toString());
+	        	if (password.equals(customerPass))
+	        		userRole = "CUSTOMER";
+	        }
+	        else{
+	        	id = DBService.getUserIdByLogin(username);
+	        	if (!id.equals(new UUID(0L, 0L))){
+		        	String userPass = DBService.getUserById(id).getData().getPass();
+		        	System.err.println(id.toString());
+		        	if (password.equals(userPass))
+		        		userRole = "USER";
+		        }
+	        }
         }
         System.err.println(userRole);
             //Step 2. Verify user role

@@ -128,7 +128,7 @@ public class RestService {
     @RolesAllowed({"ADMIN","CUSTOMER"})
     @GET
     @Path("/get_customer_data/{customer_id}")
-    @Consumes(MediaType.APPLICATION_JSON)
+    //@Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getCustomerData(@PathParam("customer_id") UUID customerId) {
         try {
@@ -140,6 +140,41 @@ public class RestService {
         } catch (IllegalArgumentException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         } catch (JsonProcessingException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        }
+    }
+    
+    @RolesAllowed({"USER","CUSTOMER"})
+    @GET
+    @Path("/get_user_data/{user_id}")
+    //@Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUserData(@PathParam("user_id") UUID userId) {
+        try {
+            User user = DBService.getUserById(userId);
+            String response = JsonConverter.toJSON(user);
+
+            return Response.status(200).entity(response).build();
+
+        } catch (IllegalArgumentException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        } catch (JsonProcessingException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        }
+    }
+    
+    @RolesAllowed({"USER", "CUSTOMER"})
+    @GET
+    @Path("/get_user_id/{user_login}")
+    //@Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUserId(@PathParam("user_login") String userLogin) {
+        try {
+            UUID id = DBService.getUserIdByLogin(userLogin);
+
+            return Response.status(200).entity("{\"id\":\"" + id.toString() + "\"}").build();
+
+        } catch (IllegalArgumentException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         }
     }
