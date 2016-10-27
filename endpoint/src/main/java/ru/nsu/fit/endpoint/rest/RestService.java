@@ -8,6 +8,7 @@ import ru.nsu.fit.endpoint.service.database.DBService;
 import ru.nsu.fit.endpoint.service.database.data.Customer;
 import ru.nsu.fit.endpoint.service.database.data.Plan;
 import ru.nsu.fit.endpoint.service.database.data.User;
+import ru.nsu.fit.endpoint.service.database.data.Subscription.SubscriptionData;
 import ru.nsu.fit.endpoint.service.database.data.Subscription;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadUserException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
@@ -251,6 +252,8 @@ public class RestService {
             //Customer customer = DBService.getCustomerById(customerId);
             Subscription subscription = DBService.getSubscriptionById(subscriptionId);
             Plan plan = DBService.getPlanById(subscription.getServicePlanId());
+            if(subscription.getData().getStatus() == SubscriptionData.Status.PROVISIONING)
+            	return Response.status(Status.CONFLICT).entity("Can't assign provisioning subscriptions!").build();
             if(subscription.getData().getUsedSeats() >= plan.getData().getMaxSeats())
                 return Response.status(400).entity("Subscription is full!").build();
     		DBService.subscribeUser(userId, subscriptionId);

@@ -120,7 +120,7 @@ public class User extends Entity<User.UserData> {
                   }
                 }
                 return null;
-              }
+            }
         }
 
         public UserData(String firstName, String lastName, String login, String pass, UserRole userRole) throws BadUserException {
