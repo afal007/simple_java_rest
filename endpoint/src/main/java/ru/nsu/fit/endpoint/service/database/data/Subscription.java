@@ -46,7 +46,20 @@ public class Subscription extends Entity<Subscription.SubscriptionData>{
         @JsonProperty("status")
         private Status status;
 
-        public static enum Status {
+        public int getUsedSeats() {
+            return usedSeats;
+        }
+        public void setUsedSeats(int usedSeats) {
+            this.usedSeats = usedSeats;
+        }
+        public Status getStatus() {
+            return status;
+        }
+        public void setStatus(Status status) {
+            this.status = status;
+        }
+
+        public enum Status {
             PROVISIONING("Provisioning"),
             DONE("Done");
 

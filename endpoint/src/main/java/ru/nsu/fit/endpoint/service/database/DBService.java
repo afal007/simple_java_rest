@@ -3,11 +3,15 @@ package ru.nsu.fit.endpoint.service.database;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.nsu.fit.endpoint.service.database.data.Customer;
+import ru.nsu.fit.endpoint.service.database.data.Plan;
+import ru.nsu.fit.endpoint.service.database.data.Subscription;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadCustomerException;
 import ru.nsu.fit.endpoint.service.database.data.User;
+import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadUserException;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.UUID;
 
 /**
@@ -16,13 +20,24 @@ import java.util.UUID;
  */
 public class DBService {
     // Constants
-    private static final String INSERT_CUSTOMER = "INSERT INTO CUSTOMER(id, firstName, lastName, login, pass, money) values ('%s', '%s', '%s', '%s', '%s', %s)";
-    private static final String SELECT_CUSTOMER_ID = "SELECT id FROM CUSTOMER WHERE login='%s'";
-    private static final String SELECT_CUSTOMER = "SELECT * FROM CUSTOMER WHERE id='%s'";
-    private static final String DELETE_CUSTOMER = "DELETE FROM CUSTOMER WHERE login='%s'";
+    private static final String INSERT_CUSTOMER = "INSERT INTO customer(id, firstName, lastName, login, pass, money) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')";
 
-    private static final String INSERT_USER = "INSERT INTO USER(id, customer_id, first_name, last_name, login, pass, user_role) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s')";
-    private static final String SELECT_USER = "SELECT id FROM USER WHERE login='%s'";
+    private static final String SELECT_CUSTOMER = "SELECT * FROM customer WHERE id='%s'";
+    private static final String SELECT_CUSTOMER_MONEY = "SELECT money FROM customer WHERE id='%s'";
+    private static final String SELECT_CUSTOMER_ID = "SELECT id FROM customer WHERE login='%s'";
+
+    private static final String DELETE_CUSTOMER = "DELETE FROM customer WHERE login='%s'";
+
+
+    private static final String INSERT_USER = "INSERT INTO user(id, customer_id, first_name, last_name, login, pass, user_role) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')";
+
+    private static final String SELECT_USER = "SELECT id FROM user WHERE login='%s'";
+
+
+    private static final String SELECT_PLAN_ID_BY_NAME = "SELECT id FROM plan WHERE name='%s'";
+    private static final String SELECT_PLAN = "SELECT * FROM plan WHERE id='%s'";
+
+    private static final String INSERT_SUBSCRIPTION = "INSERT INTO subscription(id, plan_id, customer_id, used_seats, status) VALUES ('%s', '%s', '%s', '%s', '%s')";
 
 
     private static final Logger logger = LoggerFactory.getLogger("DB_LOG");
@@ -80,7 +95,32 @@ public class DBService {
             }
         }
     }
+    public static void createSubscription(UUID customerId, UUID planId, boolean isExternal) {
+        synchronized (generalMutex) {
+            logger.info("Try to create subscription");
 
+            Subscription subscription = new Subscription(
+                    new Subscription.SubscriptionData(isExternal ? Subscription.SubscriptionData.Status.PROVISIONING : Subscription.SubscriptionData.Status.DONE),
+                    UUID.randomUUID(),
+                    customerId,
+                    planId);
+
+            try {
+                Statement statement = connection.createStatement();
+                statement.executeUpdate(
+                        String.format(
+                                INSERT_SUBSCRIPTION,
+                                subscription.getId(),
+                                subscription.getCustomerId(),
+                                subscription.getServicePlanId(),
+                                0,
+                                subscription.getData().getStatus()));
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
+    }
     public static void deleteCustomer(String customerLogin){
     	synchronized (generalMutex) {
             logger.info("Try to delete customer");
@@ -153,6 +193,91 @@ public class DBService {
         }
     }
 
+    public static int addMoney(UUID customerId, Integer amount) {
+        synchronized (generalMutex) {
+            logger.info("Try to add money to Customer by id");
+
+            try {
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(
+                        String.format(
+                                SELECT_CUSTOMER_MONEY,
+                                customerId.toString()));
+                if(rs.next()) {
+                    int total = rs.getInt(1) + amount;
+                    rs.updateInt(1, total);
+                    rs.updateRow();
+
+                    return total;
+                }
+                else {
+                    throw new IllegalArgumentException("Customer with id '" + customerId + " was not found");
+                }
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
+    public static ArrayList<UUID> getPlanIdByName(String planName) {
+        synchronized (generalMutex) {
+            logger.info("Try to get Plan id by name");
+
+            try {
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(
+                        String.format(
+                                SELECT_PLAN_ID_BY_NAME,
+                                planName));
+
+                ArrayList<UUID> id_arr = new ArrayList<>();
+                while(rs.next())
+                    id_arr.add(UUID.fromString(rs.getString(1)));
+
+                return id_arr;
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
+    public static Plan getPlanById(UUID planId) {
+        synchronized (generalMutex) {
+            logger.info("Try to get Plan by id");
+
+            try {
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(
+                        String.format(
+                                SELECT_PLAN,
+                                planId.toString()));
+                if(rs.next()) {
+                    UUID id = UUID.fromString(rs.getString("id"));
+                    String name = rs.getString("name");
+                    String details = rs.getString("details");
+                    Integer minSeats = rs.getInt("min_seats");
+                    Integer maxSeats = rs.getInt("max_seats");
+                    Integer fee = rs.getInt("fee_per_seat");
+                    Integer cost = rs.getInt("cost");
+
+                    return new Plan(new Plan.PlanData(name, details, minSeats, maxSeats, fee, cost), id);
+                }
+                else {
+                    throw new IllegalArgumentException("Plan with id '" + planId + " was not found");
+                }
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            } catch (BadPlanException ex) {
+                throw new RuntimeException("This should never happen, because we create plan from database data which was already verified");
+            }
+        }
+    }
+
+
+
     private static void init() {
         logger.debug("-------- MySQL JDBC Connection Testing ------------");
         try {
@@ -182,4 +307,7 @@ public class DBService {
             logger.debug("Failed to make connection!");
         }
     }
+
+
+
 }
