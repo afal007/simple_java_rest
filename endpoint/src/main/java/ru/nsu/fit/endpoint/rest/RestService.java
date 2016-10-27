@@ -243,9 +243,16 @@ public class RestService {
 
     @RolesAllowed("CUSTOMER")
     @PUT
-    @Path("/subscribe_user/")
-    public Response subscribeUser(@QueryParam("userId") String userId, @QueryParam("subscriptionId") String subscriptionId){
+    @Path("/subscribe_user/") //check customer's funds. if enough, subscribe user
+    public Response subscribeUser(@HeaderParam("Authorization") String auth, @QueryParam("userId") String userId, @QueryParam("subscriptionId") String subscriptionId){
     	try{
+    		String login = getLogin(auth);
+            UUID customerId = DBService.getCustomerIdByLogin(login);
+            //Customer customer = DBService.getCustomerById(customerId);
+            Subscription subscription = DBService.getSubscriptionById(subscriptionId);
+            Plan plan = DBService.getPlanById(subscription.getServicePlanId());
+            if(subscription.getData().getUsedSeats() >= plan.getData().getMaxSeats())
+                return Response.status(400).entity("Subscription is full!").build();
     		DBService.subscribeUser(userId, subscriptionId);
         	return Response.status(200).entity("Succesfully assigned user " + userId.toString() + " to subscription " + subscriptionId.toString()).build();
     	}catch (IllegalArgumentException ex) {

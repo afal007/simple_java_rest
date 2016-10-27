@@ -3,11 +3,14 @@ package ru.nsu.fit.endpoint.service.database.data;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ru.nsu.fit.endpoint.service.database.data.User.UserData.UserRole;
+
 import java.util.UUID;
 
 /**
  * @author Alexander Fal (falalexandr007@gmail.com)
  */
+//ADD VALIDATION
 public class Subscription extends Entity<Subscription.SubscriptionData>{
     private UUID id;
     private UUID customerId;
@@ -75,6 +78,17 @@ public class Subscription extends Entity<Subscription.SubscriptionData>{
 
             public String getStatusName() {
                 return statusName;
+            }
+            
+            public static Status fromString(String text) {
+                if (text != null) {
+                  for (Status b : Status.values()) {
+                    if (text.equalsIgnoreCase(b.statusName)) {
+                      return b;
+                    }
+                  }
+                }
+                return null;
             }
         }
 

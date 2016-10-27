@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import ru.nsu.fit.endpoint.service.database.data.Customer;
 import ru.nsu.fit.endpoint.service.database.data.Plan;
 import ru.nsu.fit.endpoint.service.database.data.Subscription;
+import ru.nsu.fit.endpoint.service.database.data.Subscription.SubscriptionData;
+import ru.nsu.fit.endpoint.service.database.data.Subscription.SubscriptionData.Status;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadCustomerException;
 import ru.nsu.fit.endpoint.service.database.data.User;
 import ru.nsu.fit.endpoint.service.database.data.User.UserData.UserRole;
@@ -13,6 +15,7 @@ import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadUserException;
 import ru.nsu.fit.endpoint.service.database.data.Plan;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
+import ru.nsu.fit.endpoint.service.database.exceptions.BadSubscriptionException;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -175,6 +178,27 @@ public class DBService {
 
     public static Customer getCustomerById(UUID customerId) {
         return getCustomerBy(QueryIndex.ID, customerId.toString());
+    }
+    
+    public static String getCustomerIdByUserId(UUID userId){
+    	synchronized (generalMutex) {
+            try {
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(
+                        String.format(
+                                "SELECT customer_id FROM USER WHERE user_id='%s'",
+                                userId.toString()));
+                if(rs.next()) {
+                    return rs.getString(1);
+                }
+                else {
+                    throw new IllegalArgumentException("User doesn't belong to any customer!");
+                }
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
     }
 
     public static int addCustomerMoney(UUID customerId, Integer amount) {
@@ -407,6 +431,7 @@ public class DBService {
 	    	if(ArrayUtils.contains(user.getSubscriptionIds(), subscriptionId))
 	    		throw new IllegalArgumentException("user is already subscribed to this");
 	    	else{
+	    		
 	    		try{
 	    			Statement statement = connection.createStatement();
 	    			statement.executeUpdate(
@@ -445,6 +470,34 @@ public class DBService {
                 throw new RuntimeException(ex);
     		}
     	}
+    }
+    
+    public static Subscription getSubscriptionById(String id){
+    	synchronized (generalMutex){
+            try {
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(String.format(
+                		"SELECT * FROM SUBSCRIPTION WHERE id='%s'", 
+                		id));
+                if(rs.next()) {
+                    UUID customerId = UUID.fromString(rs.getString("customer_id"));
+                    UUID planId = UUID.fromString(rs.getString("plan_id"));
+                    int usedSeats = rs.getInt("used_seats");
+                    SubscriptionData.Status status = Status.fromString(rs.getString("status"));
+                    
+                    Subscription subscription = new Subscription(new Subscription.SubscriptionData(status), UUID.fromString(id), customerId, planId);
+                    subscription.getData().setUsedSeats(usedSeats);
+                    
+                    return subscription;
+                }
+                else {
+                    throw new IllegalArgumentException("Subscription was not found");
+                }
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
     }
 
     private static void init() {
