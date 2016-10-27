@@ -25,6 +25,10 @@ public class Plan extends Entity<Plan.PlanData> {
         this.id = id;
     }
 
+    public boolean isExternal() {
+        return this.getData().getName().toLowerCase().contains("external");
+    }
+
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class PlanData {
         /* Длина не больше 128 символов и не меньше 2 включительно не содержит спец символов */
@@ -42,6 +46,8 @@ public class Plan extends Entity<Plan.PlanData> {
         /* Больше ли равно 0 но меньше либо равно 999999 */
         @JsonProperty("feePerUnit")
         private int feePerUnit;
+        @JsonProperty("cost")
+        private int cost;
 
         public String getName() {
             return name;
@@ -73,6 +79,14 @@ public class Plan extends Entity<Plan.PlanData> {
         public void setFeePerUnit(int feePerUnit) {
             this.feePerUnit = feePerUnit;
         }
+        public int getCost() {
+            return cost;
+        }
+        public void setCost(int cost) {
+            this.cost = cost;
+        }
+
+
 
         @Override
         public String toString() {
@@ -82,10 +96,11 @@ public class Plan extends Entity<Plan.PlanData> {
                     ", maxSeats=" + maxSeats +
                     ", minSeats=" + minSeats +
                     ", feePerUnit=" + feePerUnit +
+                    ", cost=" + cost +
                     '}';
         }
 
-        public PlanData(String name, String details, int maxSeats, int minSeats, int feePerUnit) throws BadPlanException {
+        public PlanData(String name, String details, int maxSeats, int minSeats, int feePerUnit, int cost) throws BadPlanException {
             this.name = name;
             this.details = details;
             this.maxSeats = maxSeats;

@@ -32,10 +32,10 @@ public class Subscription extends Entity<Subscription.SubscriptionData>{
     public void setCustomerId(UUID customerId) {
         this.customerId = customerId;
     }
-    public UUID getPlanId() {
+    public UUID getServicePlanId() {
         return servicePlanId;
     }
-    public void setPlanId(UUID servicePlanId) {
+    public void setServicePlanId(UUID servicePlanId) {
         this.servicePlanId = servicePlanId;
     }
 
@@ -46,7 +46,20 @@ public class Subscription extends Entity<Subscription.SubscriptionData>{
         @JsonProperty("status")
         private Status status;
 
-        public static enum Status {
+        public int getUsedSeats() {
+            return usedSeats;
+        }
+        public void setUsedSeats(int usedSeats) {
+            this.usedSeats = usedSeats;
+        }
+        public Status getStatus() {
+            return status;
+        }
+        public void setStatus(Status status) {
+            this.status = status;
+        }
+
+        public enum Status {
             PROVISIONING("Provisioning"),
             DONE("Done");
 
@@ -71,14 +84,7 @@ public class Subscription extends Entity<Subscription.SubscriptionData>{
         }
         
         private SubscriptionData(){}
-        
-        public int getUsedSeats(){
-        	return this.usedSeats;
-        }
-        
-        public Status getStatus(){
-        	return this.status;
-        }
+
 
         @Override
         public String toString() {
