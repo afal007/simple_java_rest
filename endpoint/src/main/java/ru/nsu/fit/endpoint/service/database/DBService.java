@@ -55,7 +55,9 @@ public class DBService {
     private static final String INSERT_SUBSCRIPTION = "INSERT INTO subscription(id, plan_id, customer_id, used_seats, status) VALUES ('%s', '%s', '%s', '%s', '%s')";
 
     private static final String INSERT_USER_ASSIGNMENT = "INSERT INTO USER_ASSIGNMENT(user_id, subscription_id) values ('%s', '%s')";
-
+    private static final String SELECT_USER_ASSIGNMENT_SUBSCRIPTION = "SELECT * FROM USER_ASSIGNMENT WHERE user_id='%s' AND subscription_id='%s'";
+    private static final String DELETE_USER_ASSIGNMENT = "DELETE FROM USER_ASSIGNMENT WHERE user_id='%s' AND subscription_id='%s'";
+    
     private static final Logger logger = LoggerFactory.getLogger("DB_LOG");
     private static final Object generalMutex = new Object();
     private static Connection connection;
@@ -416,6 +418,32 @@ public class DBService {
 	                throw new RuntimeException(ex);
 	    		}
 	    	}
+    	}
+    }
+    
+    public static void unsubscribeUser(String userId, String subscriptionId) throws IllegalArgumentException{
+    	synchronized(generalMutex){
+    		try{
+	    		Statement statement = connection.createStatement();
+	    		ResultSet rs = statement.executeQuery(
+	    							String.format(
+	    									SELECT_USER_ASSIGNMENT_SUBSCRIPTION, 
+	    									userId, subscriptionId));
+	    		if (rs.next()){ //found that subscription
+	    			statement.executeUpdate(
+								String.format(
+										DELETE_USER_ASSIGNMENT, 
+										userId, 
+										subscriptionId));
+	    		
+	    		}
+	    		else{
+	    			throw new IllegalArgumentException("user doesn't have this subscription");
+	    		}
+    		}catch(SQLException ex){
+    			logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+    		}
     	}
     }
 

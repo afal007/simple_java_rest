@@ -242,12 +242,24 @@ public class RestService {
     }
 
     @RolesAllowed("CUSTOMER")
-    @POST
+    @PUT
     @Path("/subscribe_user/")
     public Response subscribeUser(@QueryParam("userId") String userId, @QueryParam("subscriptionId") String subscriptionId){
     	try{
     		DBService.subscribeUser(userId, subscriptionId);
         	return Response.status(200).entity("Succesfully assigned user " + userId.toString() + " to subscription " + subscriptionId.toString()).build();
+    	}catch (IllegalArgumentException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        }
+    }
+    
+    @RolesAllowed("CUSTOMER")
+    @PUT
+    @Path("/unsubscribe_user/")
+    public Response unsubscribeUser(@QueryParam("userId") String userId, @QueryParam("subscriptionId") String subscriptionId){
+    	try{
+    		DBService.unsubscribeUser(userId, subscriptionId);
+        	return Response.status(200).entity("Succesfully freed user " + userId.toString() + " from subscription " + subscriptionId.toString()).build();
     	}catch (IllegalArgumentException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         }
