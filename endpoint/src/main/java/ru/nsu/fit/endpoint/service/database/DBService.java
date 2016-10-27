@@ -6,6 +6,8 @@ import ru.nsu.fit.endpoint.service.database.data.Customer;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadCustomerException;
 import ru.nsu.fit.endpoint.service.database.data.User;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadUserException;
+import ru.nsu.fit.endpoint.service.database.data.Plan;
+import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
 
 import java.sql.*;
 import java.util.UUID;
@@ -16,11 +18,14 @@ import java.util.UUID;
  */
 public class DBService {
     // Constants
-    private static final String INSERT_CUSTOMER = "INSERT INTO CUSTOMER(id, firstName, lastName, login, pass, money) values ('%s', '%s', '%s', '%s', '%s', %s)";
+    private static final String INSERT_CUSTOMER = "INSERT INTO CUSTOMER(id, first_name, last_name, login, pass, money) values ('%s', '%s', '%s', '%s', '%s', %s)";
     private static final String SELECT_CUSTOMER_ID = "SELECT id FROM CUSTOMER WHERE login='%s'";
     private static final String SELECT_CUSTOMER = "SELECT * FROM CUSTOMER WHERE id='%s'";
     private static final String DELETE_CUSTOMER = "DELETE FROM CUSTOMER WHERE login='%s'";
 
+    private static final String INSERT_PLAN = "INSERT INTO PLAN(id, name, details, min_seats, max_seats, fee_per_seat) values ('%s', '%s', '%s', %s, %s, %s)";
+    private static final String DELETE_PLAN = "DELETE FROM PLAN WHERE id='%s'";
+    
     private static final String INSERT_USER = "INSERT INTO USER(id, customer_id, first_name, last_name, login, pass, user_role) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s')";
     private static final String SELECT_USER = "SELECT id FROM USER WHERE login='%s'";
 
@@ -57,8 +62,6 @@ public class DBService {
     	}
     }
     public static void createCustomer(Customer.CustomerData customerData) throws BadCustomerException {
-    	logger.info("info log level works");
-    	logger.debug("debug log level works");
         synchronized (generalMutex) {
             logger.info("Try to create customer");
 
@@ -149,6 +152,46 @@ public class DBService {
                 throw new RuntimeException(ex);
             } catch (BadCustomerException ex) {
                 throw new RuntimeException("This should never happen, because we create customer from database data which was already verified");
+            }
+        }
+    }
+    
+    public static void createPlan(Plan.PlanData planData) throws BadPlanException{
+    	synchronized (generalMutex) {
+            logger.info("Try to create plan");
+            logger.debug("plan data: " + planData.toString());
+
+            Plan plan = new Plan(planData, UUID.randomUUID());
+            try {
+                Statement statement = connection.createStatement();
+                statement.executeUpdate(
+                        String.format(
+                                INSERT_PLAN,
+                                plan.getId(),
+                                plan.getData().getName(),
+                                plan.getData().getDetails(),
+                                plan.getData().getMinSeats(),
+                                plan.getData().getMaxSeats(),
+                                plan.getData().getFeePerUnit()));
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+    
+    public static void deletePlan(String planId){
+    	synchronized (generalMutex) {
+            logger.info("Trying to delete plan with id "+planId);
+            try {
+            	Statement statement = connection.createStatement();
+                statement.executeUpdate(
+                        String.format(
+                                DELETE_PLAN,
+                                planId));
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
             }
         }
     }

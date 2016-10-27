@@ -6,8 +6,10 @@ import org.glassfish.jersey.internal.util.Base64;
 
 import ru.nsu.fit.endpoint.service.database.DBService;
 import ru.nsu.fit.endpoint.service.database.data.Customer;
+import ru.nsu.fit.endpoint.service.database.data.Plan;
 import ru.nsu.fit.endpoint.service.database.data.User;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadUserException;
+import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadCustomerException;
 import ru.nsu.fit.endpoint.shared.JsonMapper;
 import ru.nsu.fit.endpoint.utils.JsonConverter;
@@ -40,7 +42,7 @@ public class RestService {
     }
     
     @RolesAllowed("ADMIN")
-    @POST
+    @DELETE
     @Path("/delete_customer/{customer_login}")
     public Response deleteCustomer(@PathParam("customer_login") String customerLogin){
     	try{
@@ -77,6 +79,32 @@ public class RestService {
     		return Response.status(200).entity(userData.toString()).build();
     	}
     	catch (BadUserException ex){
+    		return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+    	}
+    }
+    
+    @RolesAllowed("ADMIN")
+    @POST
+    @Path("create_plan/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createPlan(String planDataJson){
+        try {
+            Plan.PlanData planData = JsonMapper.fromJson(planDataJson, Plan.PlanData.class);
+            DBService.createPlan(planData);
+            return Response.status(200).entity(planData.toString()).build();
+        } catch (BadPlanException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        }
+    }
+    
+    @RolesAllowed("ADMIN")
+    @DELETE
+    @Path("/delete_plan/{plan_id}")
+    public Response deletePlan(@PathParam("plan_id") String planId){
+    	try{
+    		DBService.deletePlan(planId); //TODO add negative response if no customer found
+    		return Response.status(200).entity("Plan " + planId + " is now deleted").build();
+    	} catch (RuntimeException ex){
     		return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
     	}
     }

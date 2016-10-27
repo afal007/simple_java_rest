@@ -94,6 +94,8 @@ public class Plan extends Entity<Plan.PlanData> {
 
             validate(name, details, maxSeats, minSeats, feePerUnit);
         }
+        
+        public PlanData(){}
 
         private void validate() throws BadPlanException {
             validate(name, details, maxSeats, minSeats, feePerUnit);
