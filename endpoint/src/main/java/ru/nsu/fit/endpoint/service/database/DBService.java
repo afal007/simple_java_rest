@@ -7,11 +7,15 @@ import ru.nsu.fit.endpoint.service.database.data.Plan;
 import ru.nsu.fit.endpoint.service.database.data.Subscription;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadCustomerException;
 import ru.nsu.fit.endpoint.service.database.data.User;
+import ru.nsu.fit.endpoint.service.database.data.User.UserData.UserRole;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadUserException;
+import ru.nsu.fit.endpoint.service.database.data.Plan;
+import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -20,22 +24,31 @@ import java.util.UUID;
  */
 public class DBService {
     // Constants
-    private static final String INSERT_CUSTOMER = "INSERT INTO customer(id, firstName, lastName, login, pass, money) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')";
+    private static final String INSERT_CUSTOMER = "INSERT INTO CUSTOMER(id, first_name, last_name, login, pass, money) values ('%s', '%s', '%s', '%s', '%s', %s)";
 
     private static final String SELECT_CUSTOMER = "SELECT * FROM customer WHERE id='%s'";
-    private static final String SELECT_CUSTOMER_MONEY = "SELECT money FROM customer WHERE id='%s'";
-    private static final String SELECT_CUSTOMER_ID = "SELECT id FROM customer WHERE login='%s'";
+    private static final String SELECT_CUSTOMER_ID = "SELECT id FROM CUSTOMER WHERE login='%s'";
+    private static final String SELECT_CUSTOMER_BY_ID = "SELECT * FROM CUSTOMER WHERE id='%s'";
+    private static final String SELECT_CUSTOMER_BY_LOGIN = "SELECT * FROM CUSTOMER WHERE login='%s'";
 
-    private static final String DELETE_CUSTOMER = "DELETE FROM customer WHERE login='%s'";
+    private static final String DELETE_CUSTOMER = "DELETE FROM CUSTOMER WHERE login='%s'";
 
 
-    private static final String INSERT_USER = "INSERT INTO user(id, customer_id, first_name, last_name, login, pass, user_role) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')";
+    private static final String INSERT_USER = "INSERT INTO USER(id, customer_id, first_name, last_name, login, pass, user_role) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s')";
 
-    private static final String SELECT_USER = "SELECT id FROM user WHERE login='%s'";
+    private static final String SELECT_USER_ID = "SELECT id FROM USER WHERE login='%s'";
+    private static final String SELECT_USER_BY_ID = "SELECT * FROM USER WHERE id='%s'";
+    private static final String SELECT_USER_BY_LOGIN = "SELECT * FROM USER WHERE login='%s'";
+    private static final String SELECT_USER_SUBSCRIPTIONS_BY_ID = "SELECT subscription_id FROM USER_ASSIGNMENT WHERE user_id='%s'";
+    private static final String SELECT_USER_COUNT_SUBSCRIPTIONS = "SELECT COUNT(subscription_id) FROM USER_ASSIGNMENT WHERE user_id='%s'";
 
+    private static final String INSERT_PLAN = "INSERT INTO PLAN(id, name, details, min_seats, max_seats, fee_per_seat) values ('%s', '%s', '%s', %s, %s, %s)";
 
     private static final String SELECT_PLAN_ID_BY_NAME = "SELECT id FROM plan WHERE name='%s'";
     private static final String SELECT_PLAN = "SELECT * FROM plan WHERE id='%s'";
+
+    private static final String DELETE_PLAN = "DELETE FROM PLAN WHERE id='%s'";
+
 
     private static final String INSERT_SUBSCRIPTION = "INSERT INTO subscription(id, plan_id, customer_id, used_seats, status) VALUES ('%s', '%s', '%s', '%s', '%s')";
 
@@ -72,8 +85,6 @@ public class DBService {
     	}
     }
     public static void createCustomer(Customer.CustomerData customerData) throws BadCustomerException {
-    	logger.info("info log level works");
-    	logger.debug("debug log level works");
         synchronized (generalMutex) {
             logger.info("Try to create customer");
 
@@ -138,39 +149,23 @@ public class DBService {
         }
     }
 
-    public static UUID getCustomerIdByLogin(String customerLogin) {
-        synchronized (generalMutex) {
-            logger.info("Try to create customer");
-
-            try {
+    private enum QueryIndex {ID, LOGIN};
+    public static Customer getCustomerBy(QueryIndex index, String key){
+    	synchronized (generalMutex){
+    		try {
                 Statement statement = connection.createStatement();
-                ResultSet rs = statement.executeQuery(
-                        String.format(
-                                SELECT_CUSTOMER_ID,
-                                customerLogin));
-                if (rs.next()) {
-                    return UUID.fromString(rs.getString(1));
-                } else {
-                    //throw new IllegalArgumentException("Customer with login '" + customerLogin + " was not found");
-                	return new UUID(0L, 0L); // "00000000-0000-0000-0000-000000000000"
-                }
-            } catch (SQLException ex) {
-                logger.debug(ex.getMessage(), ex);
-                throw new RuntimeException(ex);
-            }
-        }
-    }
-
-    public static Customer getCustomerById(UUID customerId) {
-        synchronized (generalMutex) {
-            logger.info("Try to get Customer by id");
-
-            try {
-                Statement statement = connection.createStatement();
-                ResultSet rs = statement.executeQuery(
-                        String.format(
-                                SELECT_CUSTOMER,
-                                customerId.toString()));
+                String query = new String();
+    			switch(index){
+    			case LOGIN:{
+    				query = String.format(SELECT_CUSTOMER_BY_LOGIN, key);
+    				break;
+    			}
+    			case ID:{
+    				query = String.format(SELECT_CUSTOMER_BY_ID, key);
+    				break;
+    			}
+    			}
+                ResultSet rs = statement.executeQuery(query);
                 if(rs.next()) {
                     UUID id = UUID.fromString(rs.getString("id"));
                     String firstName = rs.getString("first_name");
@@ -182,7 +177,7 @@ public class DBService {
                     return new Customer(new Customer.CustomerData(firstName, lastName, login, pass, money), id);
                 }
                 else {
-                    throw new IllegalArgumentException("Customer with id '" + customerId + " was not found");
+                    throw new IllegalArgumentException("Customer was not found");
                 }
             } catch (SQLException ex) {
                 logger.debug(ex.getMessage(), ex);
@@ -190,7 +185,86 @@ public class DBService {
             } catch (BadCustomerException ex) {
                 throw new RuntimeException("This should never happen, because we create customer from database data which was already verified");
             }
-        }
+    	}
+    }
+
+    public static UUID getCustomerIdByLogin(String customerLogin) {
+    	try{
+    		Customer customer = getCustomerBy(QueryIndex.LOGIN, customerLogin);
+    		return customer.getId();
+    	}catch (IllegalArgumentException ex){ // thrown when user not found
+    		return new UUID(0L, 0L);
+    	}
+    }
+
+    public static Customer getCustomerById(UUID customerId) {
+        return getCustomerBy(QueryIndex.ID, customerId.toString());
+    }
+
+    public static User getUserBy(QueryIndex index, String key){
+    	synchronized (generalMutex){
+    		try {
+                Statement statement = connection.createStatement();
+                String query = new String();
+    			switch(index){
+    			case LOGIN:{
+    				query = String.format(SELECT_USER_BY_LOGIN, key);
+    				break;
+    			}
+    			case ID:{
+    				query = String.format(SELECT_USER_BY_ID, key);
+    				break;
+    			}
+    			}
+                ResultSet rs = statement.executeQuery(query);
+                if(rs.next()) {
+                    UUID id = UUID.fromString(rs.getString("id"));
+                    UUID customerId = UUID.fromString(rs.getString("customer_id"));
+                    String firstName = rs.getString("first_name");
+                    String lastName = rs.getString("last_name");
+                    String login = rs.getString("login");
+                    String pass = rs.getString("pass");
+                    UserRole userRole = UserRole.fromString(rs.getString("user_role"));
+
+                    User user = new User(new User.UserData(firstName, lastName, login, pass, userRole), id, customerId);
+
+                    //fetch subscriptions
+                    rs = statement.executeQuery(String.format(SELECT_USER_COUNT_SUBSCRIPTIONS, id));
+                    int count = 0;
+                    if (rs.next())
+                    	count = rs.getInt(1);
+                    if (count > 0) {
+	                    rs = statement.executeQuery(String.format(SELECT_USER_SUBSCRIPTIONS_BY_ID, id));
+	                    UUID[] subscriptionIds = new UUID[count];
+	                    int i = 0;
+	                    while(rs.next()){
+	                    	subscriptionIds[i] = (UUID.fromString(rs.getString("subscription_id")));
+	                    	i++;
+	                    }
+	                    user.setSubscriptionIds(subscriptionIds);
+                    }
+
+                    return user;
+                }
+                else {
+                    throw new IllegalArgumentException("User was not found");
+                }
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            } catch (BadUserException ex) {
+                throw new RuntimeException("This should never happen, because we create customer from database data which was already verified");
+            }
+    	}
+    }
+
+    public static UUID getUserIdByLogin(String userLogin) {
+    	try{
+    		User user = getUserBy(QueryIndex.LOGIN, userLogin);
+    		return user.getId();
+    	}catch (IllegalArgumentException ex){ // thrown when user not found
+    		return new UUID(0L, 0L);
+    	}
     }
 
     public static int addMoney(UUID customerId, Integer amount) {
@@ -276,6 +350,50 @@ public class DBService {
         }
     }
 
+    public static User getUserById(UUID userId) {
+        return getUserBy(QueryIndex.ID, userId.toString());
+    }
+
+    public static void createPlan(Plan.PlanData planData) throws BadPlanException{
+        synchronized (generalMutex) {
+            logger.info("Try to create plan");
+            logger.debug("plan data: " + planData.toString());
+
+            Plan plan = new Plan(planData, UUID.randomUUID());
+            try {
+                Statement statement = connection.createStatement();
+                statement.executeUpdate(
+                        String.format(
+                                INSERT_PLAN,
+                                plan.getId(),
+                                plan.getData().getName(),
+                                plan.getData().getDetails(),
+                                plan.getData().getMinSeats(),
+                                plan.getData().getMaxSeats(),
+                                plan.getData().getFeePerUnit()));
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
+    public static void deletePlan(String planId){
+        synchronized (generalMutex) {
+            logger.info("Trying to delete plan with id "+planId);
+            try {
+                Statement statement = connection.createStatement();
+                statement.executeUpdate(
+                        String.format(
+                                DELETE_PLAN,
+                                planId));
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
 
 
     private static void init() {
@@ -307,7 +425,4 @@ public class DBService {
             logger.debug("Failed to make connection!");
         }
     }
-
-
-
 }
