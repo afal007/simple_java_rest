@@ -36,6 +36,10 @@ public class AuthenticationFilter implements javax.ws.rs.container.ContainerRequ
 
     private static final String AUTHORIZATION_PROPERTY = "Authorization";
     private static final String AUTHENTICATION_SCHEME = "Basic";
+    
+    public String getAuthenticationScheme(){
+    	return AUTHENTICATION_SCHEME;
+    }
 
     @Override
     public void filter(ContainerRequestContext requestContext) {

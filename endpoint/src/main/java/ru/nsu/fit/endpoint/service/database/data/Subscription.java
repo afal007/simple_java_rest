@@ -32,10 +32,10 @@ public class Subscription extends Entity<Subscription.SubscriptionData>{
     public void setCustomerId(UUID customerId) {
         this.customerId = customerId;
     }
-    public UUID getServicePlanId() {
+    public UUID getPlanId() {
         return servicePlanId;
     }
-    public void setServicePlanId(UUID servicePlanId) {
+    public void setPlanId(UUID servicePlanId) {
         this.servicePlanId = servicePlanId;
     }
 
@@ -68,6 +68,16 @@ public class Subscription extends Entity<Subscription.SubscriptionData>{
         public SubscriptionData(Status status) {
             this.usedSeats = 1;
             this.status = status;
+        }
+        
+        private SubscriptionData(){}
+        
+        public int getUsedSeats(){
+        	return this.usedSeats;
+        }
+        
+        public Status getStatus(){
+        	return this.status;
         }
 
         @Override

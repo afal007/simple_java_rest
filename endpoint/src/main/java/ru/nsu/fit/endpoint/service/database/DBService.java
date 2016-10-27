@@ -9,6 +9,8 @@ import ru.nsu.fit.endpoint.service.database.data.User.UserData.UserRole;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadUserException;
 import ru.nsu.fit.endpoint.service.database.data.Plan;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
+import ru.nsu.fit.endpoint.service.database.data.Subscription;
+import ru.nsu.fit.endpoint.service.database.exceptions.BadSubscriptionException;
 
 import java.sql.*;
 import java.util.List;
@@ -35,6 +37,8 @@ public class DBService {
     private static final String SELECT_USER_BY_LOGIN = "SELECT * FROM USER WHERE login='%s'";
     private static final String SELECT_USER_SUBSCRIPTIONS_BY_ID = "SELECT subscription_id FROM USER_ASSIGNMENT WHERE user_id='%s'";
     private static final String SELECT_USER_COUNT_SUBSCRIPTIONS = "SELECT COUNT(subscription_id) FROM USER_ASSIGNMENT WHERE user_id='%s'";
+    
+    private static final String INSERT_SUBSCRIPTION = "INSERT INTO SUBSCRIPTION(id, plan_id, customer_id, used_seats, status) values ('%s', '%s', '%s', %s, '%s')";
     
     private static final Logger logger = LoggerFactory.getLogger("DB_LOG");
     private static final Object generalMutex = new Object();
@@ -268,8 +272,32 @@ public class DBService {
             }
         }
     }
+    
+    public static void createSubscription(Subscription.SubscriptionData data, UUID planId, UUID customerId) throws BadSubscriptionException{
+    	synchronized (generalMutex) {
+            logger.info("Try to create subscription");
+            logger.debug("plan data: " + data.toString());
+
+            Subscription subscription = new Subscription(data, UUID.randomUUID(), customerId, planId);
+            try {
+                Statement statement = connection.createStatement();
+                statement.executeUpdate(
+                        String.format(
+                                INSERT_SUBSCRIPTION,
+                                subscription.getId(),
+                                subscription.getPlanId(),
+                                subscription.getCustomerId(),
+                                subscription.getData().getUsedSeats(),
+                                subscription.getData().getStatus()));
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
+    }
 
     private static void init() {
+    org.apache.log4j.BasicConfigurator.configure(); //configures the logger so it works properly
         logger.debug("-------- MySQL JDBC Connection Testing ------------");
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");

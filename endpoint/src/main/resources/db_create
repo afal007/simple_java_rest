@@ -29,7 +29,8 @@ CREATE TABLE `SUBSCRIPTION` (
 	`id` TEXT NOT NULL,
 	`plan_id` TEXT NOT NULL,
 	`customer_id` TEXT NOT NULL,
-	`used_seats` INT(11) NOT NULL
+	`used_seats` INT(11) NOT NULL,
+	`status` ENUM('PROVISIONING', 'DONE') NOT NULL
 );
 
 CREATE TABLE `USER` (

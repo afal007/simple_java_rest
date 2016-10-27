@@ -8,9 +8,11 @@ import ru.nsu.fit.endpoint.service.database.DBService;
 import ru.nsu.fit.endpoint.service.database.data.Customer;
 import ru.nsu.fit.endpoint.service.database.data.Plan;
 import ru.nsu.fit.endpoint.service.database.data.User;
+import ru.nsu.fit.endpoint.service.database.data.Subscription;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadUserException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadCustomerException;
+import ru.nsu.fit.endpoint.service.database.exceptions.BadSubscriptionException;
 import ru.nsu.fit.endpoint.shared.JsonMapper;
 import ru.nsu.fit.endpoint.utils.JsonConverter;
 
@@ -177,5 +179,36 @@ public class RestService {
         } catch (IllegalArgumentException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         }
+    }
+    
+    @RolesAllowed("CUSTOMER")
+    @POST
+    @Path("/create_subscription/{plan_id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createSubscription(@HeaderParam("Authorization") String creatorCredentialsBase64, @PathParam("plan_id") String planId, String dataJson){
+    	try{
+    		Subscription.SubscriptionData data = JsonMapper.fromJson(dataJson, Subscription.SubscriptionData.class);
+    		creatorCredentialsBase64 = creatorCredentialsBase64.replaceFirst("Basic ", ""); // get auth property from AuthenticationFilter
+    		String creatorCredentials = new String(Base64.decode(creatorCredentialsBase64.getBytes()));
+    		StringTokenizer tokenizer = new StringTokenizer(creatorCredentials, ":");
+            String username = tokenizer.nextToken();
+            System.err.println("Trying to create subscription");
+            System.err.println(creatorCredentialsBase64);
+            System.err.println(username);
+            UUID customerId;
+            if (!username.equals("admin")){
+            	customerId = DBService.getCustomerIdByLogin(username);
+            }
+            else{
+            	//f u admin
+            	return Response.status(Response.Status.UNAUTHORIZED).entity("You cannot access this resource").build();
+            }
+    		DBService.createSubscription(data, customerId, UUID.fromString(planId));
+    		return Response.status(200).entity(data.toString()).build();
+    	}
+    	catch (BadSubscriptionException ex){
+    		return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+    	}
     }
 }
