@@ -249,13 +249,16 @@ public class RestService {
     	try{
     		String login = getLogin(auth);
             UUID customerId = DBService.getCustomerIdByLogin(login);
-            //Customer customer = DBService.getCustomerById(customerId);
+            Customer customer = DBService.getCustomerById(customerId);
             Subscription subscription = DBService.getSubscriptionById(subscriptionId);
             Plan plan = DBService.getPlanById(subscription.getServicePlanId());
             if(subscription.getData().getStatus() == SubscriptionData.Status.PROVISIONING)
             	return Response.status(Status.CONFLICT).entity("Can't assign provisioning subscriptions!").build();
             if(subscription.getData().getUsedSeats() >= plan.getData().getMaxSeats())
                 return Response.status(400).entity("Subscription is full!").build();
+            if(customer.getData().getMoney() < plan.getData().getFeePerUnit())
+            	return Response.status(Status.EXPECTATION_FAILED).entity("Not enough money").build();
+            customer.payAmount(plan.getData().getFeePerUnit());
     		DBService.subscribeUser(userId, subscriptionId);
         	return Response.status(200).entity("Succesfully assigned user " + userId.toString() + " to subscription " + subscriptionId.toString()).build();
     	}catch (IllegalArgumentException ex) {

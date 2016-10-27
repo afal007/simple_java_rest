@@ -22,7 +22,8 @@ CREATE TABLE `PLAN` (
 	`details` TEXT NOT NULL,
 	`min_seats` INT(11) NOT NULL,
 	`max_seats` INT(11) NOT NULL,
-	`fee_per_seat` INT(11) NOT NULL
+	`fee_per_seat` INT(11) NOT NULL,
+	`cost` INT(11) NOT NULL
 );
 
 CREATE TABLE `SUBSCRIPTION` (

@@ -106,6 +106,7 @@ public class Plan extends Entity<Plan.PlanData> {
             this.maxSeats = maxSeats;
             this.minSeats = minSeats;
             this.feePerUnit = feePerUnit;
+            this.cost = cost;
 
             validate(name, details, maxSeats, minSeats, feePerUnit);
         }

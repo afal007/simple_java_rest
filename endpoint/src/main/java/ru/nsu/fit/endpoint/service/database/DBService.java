@@ -47,7 +47,7 @@ public class DBService {
     private static final String SELECT_USER_SUBSCRIPTIONS_BY_ID = "SELECT subscription_id FROM USER_ASSIGNMENT WHERE user_id='%s'";
     private static final String SELECT_USER_COUNT_SUBSCRIPTIONS = "SELECT COUNT(subscription_id) FROM USER_ASSIGNMENT WHERE user_id='%s'";
 
-    private static final String INSERT_PLAN = "INSERT INTO PLAN(id, name, details, min_seats, max_seats, fee_per_seat) values ('%s', '%s', '%s', %s, %s, %s)";
+    private static final String INSERT_PLAN = "INSERT INTO PLAN(id, name, details, min_seats, max_seats, fee_per_seat, cost) values ('%s', '%s', '%s', %s, %s, %s, %s)";
 
     private static final String SELECT_PLAN_ID_BY_NAME = "SELECT id FROM plan WHERE name='%s'";
     private static final String SELECT_PLAN = "SELECT * FROM plan WHERE id='%s'";
@@ -55,7 +55,7 @@ public class DBService {
     private static final String DELETE_PLAN = "DELETE FROM PLAN WHERE id='%s'";
 
 
-    private static final String INSERT_SUBSCRIPTION = "INSERT INTO subscription(id, plan_id, customer_id, used_seats, status) VALUES ('%s', '%s', '%s', '%s', '%s')";
+    private static final String INSERT_SUBSCRIPTION = "INSERT INTO subscription(id, customer_id, plan_id, used_seats, status) VALUES ('%s', '%s', '%s', '%s', '%s')";
 
     private static final String INSERT_USER_ASSIGNMENT = "INSERT INTO USER_ASSIGNMENT(user_id, subscription_id) values ('%s', '%s')";
     private static final String SELECT_USER_ASSIGNMENT_SUBSCRIPTION = "SELECT * FROM USER_ASSIGNMENT WHERE user_id='%s' AND subscription_id='%s'";
@@ -159,7 +159,8 @@ public class DBService {
                                 plan.getData().getDetails(),
                                 plan.getData().getMinSeats(),
                                 plan.getData().getMaxSeats(),
-                                plan.getData().getFeePerUnit()));
+                                plan.getData().getFeePerUnit(),
+                                plan.getData().getCost()));
             } catch (SQLException ex) {
                 logger.debug(ex.getMessage(), ex);
                 throw new RuntimeException(ex);
@@ -270,7 +271,7 @@ public class DBService {
                     Integer fee = rs.getInt("fee_per_seat");
                     Integer cost = rs.getInt("cost");
 
-                    return new Plan(new Plan.PlanData(name, details, minSeats, maxSeats, fee, cost), id);
+                    return new Plan(new Plan.PlanData(name, details, maxSeats, minSeats, fee, cost), id);
                 }
                 else {
                     throw new IllegalArgumentException("Plan with id '" + planId + " was not found");
