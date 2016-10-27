@@ -1,5 +1,6 @@
 package ru.nsu.fit.endpoint.service.database;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.nsu.fit.endpoint.service.database.data.Customer;
@@ -53,6 +54,7 @@ public class DBService {
 
     private static final String INSERT_SUBSCRIPTION = "INSERT INTO subscription(id, plan_id, customer_id, used_seats, status) VALUES ('%s', '%s', '%s', '%s', '%s')";
 
+    private static final String INSERT_USER_ASSIGNMENT = "INSERT INTO USER_ASSIGNMENT(user_id, subscription_id) values ('%s', '%s')";
 
     private static final Logger logger = LoggerFactory.getLogger("DB_LOG");
     private static final Object generalMutex = new Object();
@@ -395,6 +397,26 @@ public class DBService {
                 throw new RuntimeException("This should never happen, because we create customer from database data which was already verified");
             }
         }
+    }
+    
+    public static void subscribeUser(String userId, String subscriptionId) throws IllegalArgumentException{
+    	synchronized(generalMutex){
+	    	User user = getUserById(UUID.fromString(userId));
+	    	if(ArrayUtils.contains(user.getSubscriptionIds(), subscriptionId))
+	    		throw new IllegalArgumentException("user is already subscribed to this");
+	    	else{
+	    		try{
+	    			Statement statement = connection.createStatement();
+	    			statement.executeUpdate(
+						String.format(INSERT_USER_ASSIGNMENT, 
+								userId,
+								subscriptionId));
+	    		}catch(SQLException ex){
+	    			logger.debug(ex.getMessage(), ex);
+	                throw new RuntimeException(ex);
+	    		}
+	    	}
+    	}
     }
 
     private static void init() {

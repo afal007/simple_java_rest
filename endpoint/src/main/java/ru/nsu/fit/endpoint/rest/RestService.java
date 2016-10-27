@@ -19,6 +19,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -240,7 +241,18 @@ public class RestService {
         }
     }
 
-
+    @RolesAllowed("CUSTOMER")
+    @POST
+    @Path("/subscribe_user/")
+    public Response subscribeUser(@QueryParam("userId") String userId, @QueryParam("subscriptionId") String subscriptionId){
+    	try{
+    		DBService.subscribeUser(userId, subscriptionId);
+        	return Response.status(200).entity("Succesfully assigned user " + userId.toString() + " to subscription " + subscriptionId.toString()).build();
+    	}catch (IllegalArgumentException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        }
+    }
+    
     private String getLogin(String auth) {
         String login = auth.split(" ")[1];
 
