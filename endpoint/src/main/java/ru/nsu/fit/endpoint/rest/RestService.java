@@ -125,7 +125,7 @@ public class RestService {
         }
     }
 
-    @RolesAllowed("CUSTOMER")
+    @RolesAllowed({"ADMIN","CUSTOMER"})
     @GET
     @Path("/get_customer_data/{customer_id}")
     @Consumes(MediaType.APPLICATION_JSON)

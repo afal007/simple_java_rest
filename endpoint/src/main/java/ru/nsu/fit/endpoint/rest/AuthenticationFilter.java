@@ -105,8 +105,9 @@ public class AuthenticationFilter implements javax.ws.rs.container.ContainerRequ
         else{
 	        UUID id;
 	        id = DBService.getCustomerIdByLogin(username);
+	        String customerPass = DBService.getCustomerById(id).getData().getPass();
 	        System.err.println(id.toString());
-	        if (! id.equals(new UUID(0L, 0L))) // id exists and not null. CHECK PASSWORD!
+	        if (!id.equals(new UUID(0L, 0L)) && (password.equals(customerPass) )) // id exists and not null.
 	        	userRole = "CUSTOMER";
         }
         System.err.println(userRole);

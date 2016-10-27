@@ -20,7 +20,8 @@ public class DBService {
     // Constants
     private static final String INSERT_CUSTOMER = "INSERT INTO CUSTOMER(id, first_name, last_name, login, pass, money) values ('%s', '%s', '%s', '%s', '%s', %s)";
     private static final String SELECT_CUSTOMER_ID = "SELECT id FROM CUSTOMER WHERE login='%s'";
-    private static final String SELECT_CUSTOMER = "SELECT * FROM CUSTOMER WHERE id='%s'";
+    private static final String SELECT_CUSTOMER_BY_ID = "SELECT * FROM CUSTOMER WHERE id='%s'";
+    private static final String SELECT_CUSTOMER_BY_LOGIN = "SELECT * FROM CUSTOMER WHERE login='%s'";
     private static final String DELETE_CUSTOMER = "DELETE FROM CUSTOMER WHERE login='%s'";
 
     private static final String INSERT_PLAN = "INSERT INTO PLAN(id, name, details, min_seats, max_seats, fee_per_seat) values ('%s', '%s', '%s', %s, %s, %s)";
@@ -100,40 +101,24 @@ public class DBService {
             }
         }
     }
-
-    public static UUID getCustomerIdByLogin(String customerLogin) {
-        synchronized (generalMutex) {
-            logger.info("Try to create customer");
-
-            try {
+    
+    private enum QueryIndex {ID, LOGIN};
+    public static Customer getCustomerBy(QueryIndex index, String key){
+    	synchronized (generalMutex){
+    		try {
                 Statement statement = connection.createStatement();
-                ResultSet rs = statement.executeQuery(
-                        String.format(
-                                SELECT_CUSTOMER_ID,
-                                customerLogin));
-                if (rs.next()) {
-                    return UUID.fromString(rs.getString(1));
-                } else {
-                    //throw new IllegalArgumentException("Customer with login '" + customerLogin + " was not found");
-                	return new UUID(0L, 0L); // "00000000-0000-0000-0000-000000000000"
-                }
-            } catch (SQLException ex) {
-                logger.debug(ex.getMessage(), ex);
-                throw new RuntimeException(ex);
-            }
-        }
-    }
-
-    public static Customer getCustomerById(UUID customerId) {
-        synchronized (generalMutex) {
-            logger.info("Try to get Customer by id");
-
-            try {
-                Statement statement = connection.createStatement();
-                ResultSet rs = statement.executeQuery(
-                        String.format(
-                                SELECT_CUSTOMER,
-                                customerId.toString()));
+                String query = new String();
+    			switch(index){
+    			case LOGIN:{
+    				query = String.format(SELECT_CUSTOMER_BY_LOGIN, key);
+    				break;
+    			}
+    			case ID:{
+    				query = String.format(SELECT_CUSTOMER_BY_ID, key);
+    				break;
+    			}
+    			}
+                ResultSet rs = statement.executeQuery(query);
                 if(rs.next()) {
                     UUID id = UUID.fromString(rs.getString("id"));
                     String firstName = rs.getString("first_name");
@@ -145,7 +130,7 @@ public class DBService {
                     return new Customer(new Customer.CustomerData(firstName, lastName, login, pass, money), id);
                 }
                 else {
-                    throw new IllegalArgumentException("Customer with id '" + customerId + " was not found");
+                    throw new IllegalArgumentException("Customer was not found");
                 }
             } catch (SQLException ex) {
                 logger.debug(ex.getMessage(), ex);
@@ -153,7 +138,16 @@ public class DBService {
             } catch (BadCustomerException ex) {
                 throw new RuntimeException("This should never happen, because we create customer from database data which was already verified");
             }
-        }
+    	}
+    }
+    
+    public static UUID getCustomerIdByLogin(String customerLogin) {
+    	Customer customer = getCustomerBy(QueryIndex.LOGIN, customerLogin);
+    	return customer.getId();
+    }
+
+    public static Customer getCustomerById(UUID customerId) {
+        return getCustomerBy(QueryIndex.ID, customerId.toString());
     }
     
     public static void createPlan(Plan.PlanData planData) throws BadPlanException{
