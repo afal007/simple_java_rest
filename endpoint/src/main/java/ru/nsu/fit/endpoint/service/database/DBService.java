@@ -3,6 +3,9 @@ package ru.nsu.fit.endpoint.service.database;
 import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.mysql.cj.api.mysqla.result.Resultset.Concurrency;
+
 import ru.nsu.fit.endpoint.service.database.data.Customer;
 import ru.nsu.fit.endpoint.service.database.data.Plan;
 import ru.nsu.fit.endpoint.service.database.data.Subscription;
@@ -202,21 +205,24 @@ public class DBService {
         }
     }
 
-    public static int addCustomerMoney(UUID customerId, Integer amount) {
+    public static int updateCustomerMoney(UUID customerId, Integer amount) {
         synchronized (generalMutex) {
-            logger.info("Try to add money to Customer by id");
+            logger.info("Try to update money on Customer by id");
 
             try {
-                Statement statement = connection.createStatement();
+                Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
                 ResultSet rs = statement.executeQuery(
                         String.format(
-                                SELECT_CUSTOMER_MONEY,
+                                "SELECT * FROM CUSTOMER WHERE id='%s'",
                                 customerId.toString()));
                 if(rs.next()) {
-                    int total = rs.getInt(1) + amount;
-                    rs.updateInt(1, total);
+                    int total = rs.getInt("money") + amount;
+                    if (total < 0)
+                    	throw new IllegalArgumentException("Insufficient funds!");
+                    
+                    rs.updateInt("money", total);
                     rs.updateRow();
-
+                    System.err.println("TOTAL " + total);
                     return total;
                 }
                 else {

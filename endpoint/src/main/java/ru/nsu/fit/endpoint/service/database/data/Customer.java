@@ -24,14 +24,7 @@ public class Customer extends Entity<Customer.CustomerData> {
     public UUID getId() {
         return id;
     }
-    
-    public void payAmount(int amount){
-    	int money = this.getData().money;
-    	if (amount > money){
-    		throw new IllegalArgumentException("Insufficient funds!");
-    	}
-    	this.getData().money -= amount;
-    }
+
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class CustomerData {

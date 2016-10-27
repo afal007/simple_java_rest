@@ -211,7 +211,7 @@ public class RestService {
     @Produces(MediaType.APPLICATION_JSON)
     public Response topUpCustomerBalance(@PathParam("customer_id") UUID customerId, @PathParam("amount") Integer amount) {
         try {
-            Integer response = DBService.addCustomerMoney(customerId, amount);
+            Integer response = DBService.updateCustomerMoney(customerId, amount);
 
             return Response.status(200).entity("money: " + response.toString()).build();
         } catch (IllegalArgumentException ex) {
@@ -258,7 +258,7 @@ public class RestService {
                 return Response.status(400).entity("Subscription is full!").build();
             if(customer.getData().getMoney() < plan.getData().getFeePerUnit())
             	return Response.status(Status.EXPECTATION_FAILED).entity("Not enough money").build();
-            customer.payAmount(plan.getData().getFeePerUnit());
+            DBService.updateCustomerMoney(customerId, -plan.getData().getFeePerUnit());
     		DBService.subscribeUser(userId, subscriptionId);
         	return Response.status(200).entity("Succesfully assigned user " + userId.toString() + " to subscription " + subscriptionId.toString()).build();
     	}catch (IllegalArgumentException ex) {

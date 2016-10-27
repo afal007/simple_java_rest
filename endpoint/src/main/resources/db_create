@@ -8,43 +8,47 @@ USE testmethods;
 
 # Create tables
 CREATE TABLE `CUSTOMER` (
-	`id` TEXT NOT NULL,
+	`id` VARCHAR(36) NOT NULL,
 	`first_name` TEXT NOT NULL,
 	`last_name` TEXT NOT NULL,
 	`login` TEXT NOT NULL,
 	`pass` TEXT NOT NULL,
-	`money` INT(11) NOT NULL DEFAULT '0'
+	`money` INT(11) NOT NULL DEFAULT '0',
+	PRIMARY KEY (`id`)
 );
 
 CREATE TABLE `PLAN` (
-	`id` TEXT NOT NULL,
+	`id` VARCHAR(36) NOT NULL,
 	`name` TEXT NOT NULL,
 	`details` TEXT NOT NULL,
 	`min_seats` INT(11) NOT NULL,
 	`max_seats` INT(11) NOT NULL,
 	`fee_per_seat` INT(11) NOT NULL,
-	`cost` INT(11) NOT NULL
+	`cost` INT(11) NOT NULL,
+	PRIMARY KEY (`id`)
 );
 
 CREATE TABLE `SUBSCRIPTION` (
-	`id` TEXT NOT NULL,
+	`id` VARCHAR(36) NOT NULL,
 	`plan_id` TEXT NOT NULL,
 	`customer_id` TEXT NOT NULL,
 	`used_seats` INT(11) NOT NULL,
-	`status` ENUM('PROVISIONING', 'DONE') NOT NULL
+	`status` ENUM('PROVISIONING', 'DONE') NOT NULL,
+	PRIMARY KEY (`id`)
 );
 
 CREATE TABLE `USER` (
-	`id` TEXT NULL,
+	`id` VARCHAR(36) NULL,
 	`customer_id` TEXT NULL,
 	`first_name` TEXT NOT NULL,
 	`last_name` TEXT NOT NULL,
 	`login` TEXT NOT NULL,
 	`pass` TEXT NOT NULL,
-	`user_role` TEXT NOT NULL
+	`user_role` TEXT NOT NULL,
+	PRIMARY KEY (`id`)
 );
 
 CREATE TABLE `USER_ASSIGNMENT` (
 	`user_id` TEXT NOT NULL,
-	`subscription_id` TEXT NOT NULL
+	`subscription_id` TEXT NOT NULL,
 );
