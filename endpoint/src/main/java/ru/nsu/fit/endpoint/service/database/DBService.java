@@ -523,8 +523,8 @@ public class DBService {
             connection = DriverManager
                     .getConnection(
                             "jdbc:mysql://localhost:3306/testmethods?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false",
-                            "user",
-                            "user");
+                            "test_methods_user",
+                            "1q2w3e");
         } catch (SQLException ex) {
             logger.debug("Connection Failed! Check output console", ex);
             throw new RuntimeException(ex);

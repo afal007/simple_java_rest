@@ -103,6 +103,7 @@ public class AuthenticationFilter implements javax.ws.rs.container.ContainerRequ
         //If both match then get the defined role for user from database and continue; else return isAllowed [false]
         //Access the database and do this part yourself
         //String userRole = userMgr.getUserRole(username);
+        //Base64(admin:setup) = YWRtaW46c2V0dXA=
         String userRole = "";
         if (username.equals("admin") && password.equals("setup")) 
             userRole = "ADMIN";

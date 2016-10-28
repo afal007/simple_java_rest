@@ -235,6 +235,7 @@ public class RestService {
                 return Response.status(400).entity("Not enough money to complete purchase.").build();
 
             DBService.createSubscription(customerId, planId, plan.isExternal());
+            DBService.updateCustomerMoney(customerId, - plan.getData().getCost());
 
             return Response.status(200).entity("Succesfully purchased plan " + planId.toString()).build();
         } catch (IllegalArgumentException ex) {
