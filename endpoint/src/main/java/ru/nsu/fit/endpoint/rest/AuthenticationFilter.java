@@ -119,7 +119,7 @@ public class AuthenticationFilter implements javax.ws.rs.container.ContainerRequ
 	        else{
 	        	id = DBService.getUserIdByLogin(username);
 	        	if (!id.equals(new UUID(0L, 0L))){
-		        	String userPass = DBService.getUserById(id).getData().getPass();
+		        	String userPass = DBService.getUserById(id.toString()).getData().getPass();
 		        	System.err.println(id.toString());
 		        	if (password.equals(userPass))
 		        		userRole = "USER";

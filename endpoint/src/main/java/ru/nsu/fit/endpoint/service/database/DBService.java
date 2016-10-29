@@ -432,10 +432,37 @@ public class DBService {
         }
     }
     
+    public static void updateSubscriptionSeats(String subscriptionId, int amount){
+    	
+    	synchronized(generalMutex){
+    		Subscription subscription = getSubscriptionById(subscriptionId);
+    		try{
+    		Statement statement = connection.createStatement();
+
+			ResultSet rs = statement.executeQuery(
+                    String.format(
+                            "SELECT * FROM SUBSCRIPTION WHERE id='%s'",
+                            subscriptionId));
+            if(rs.next()) {
+                int total = rs.getInt("used_seats") + amount;
+                if (total > getPlanById(subscription.getServicePlanId()).getData().getMaxSeats() ||
+            		total < getPlanById(subscription.getServicePlanId()).getData().getMinSeats())
+                		throw new IllegalArgumentException("Can't update subscription seats!");                
+                rs.updateInt("used_seats", total);
+                rs.updateRow();
+                System.err.println("TOTAL " + total);
+            }
+    		}catch(SQLException ex){
+    			logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+    		}
+    	}
+    }
+    
     public static void subscribeUser(String userId, String subscriptionId) throws IllegalArgumentException{
     	synchronized(generalMutex){
 	    	User user = getUserById(userId);
-	    	Subscription subscription = getSubscriptionById(subscriptionId);
+	    	//Subscription subscription = getSubscriptionById(subscriptionId);
 	    	if(ArrayUtils.contains(user.getSubscriptionIds(), UUID.fromString(subscriptionId)))
 	    		throw new IllegalArgumentException("user is already subscribed to this");
 	    	else{
@@ -449,19 +476,7 @@ public class DBService {
 								subscriptionId));
 	    			
 	    			//2. take free seat from subscription
-	    			ResultSet rs = statement.executeQuery(
-	                        String.format(
-	                                "SELECT * FROM SUBSCRIPTION WHERE id='%s'",
-	                                subscriptionId));
-	                if(rs.next()) {
-	                    int total = rs.getInt("used_seats") + 1;
-	                    if (total > getPlanById(subscription.getServicePlanId()).getData().getMaxSeats())
-	                    	throw new IllegalArgumentException("Insufficient subscription seats!");
-	                    
-	                    rs.updateInt("used_seats", total);
-	                    rs.updateRow();
-	                    System.err.println("TOTAL " + total);
-	                }
+	    			updateSubscriptionSeats(subscriptionId, -1);
 	    		}catch(SQLException ex){
 	    			logger.debug(ex.getMessage(), ex);
 	                throw new RuntimeException(ex);
