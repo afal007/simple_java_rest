@@ -336,6 +336,24 @@ public class DBService {
             }
         }
     }
+    
+    public static boolean isPlanOwned(String customerId, String planId){
+    	synchronized(generalMutex){
+    		try{
+    			Statement statement = connection.createStatement();
+    			ResultSet rs = statement.executeQuery(
+    					String.format(
+    							"SELECT id FROM SUBSCRIPTION WHERE customer_id='%s' AND plan_id='%s'",
+    							customerId, planId));
+    			if(rs.next())
+    				return true;
+				else
+					return false;
+    		}catch(SQLException ex){
+    			throw new RuntimeException(ex);
+    		}
+    	}
+    }
 
     private enum QueryIndex {ID, LOGIN}
     private static Customer getCustomerBy(QueryIndex index, String key){

@@ -230,6 +230,9 @@ public class RestService {
             UUID customerId = DBService.getCustomerIdByLogin(login);
             Customer customer = DBService.getCustomerById(customerId);
             Plan plan = DBService.getPlanById(planId);
+            
+            if(DBService.isPlanOwned(customerId.toString(), planId.toString()))
+            	return Response.status(400).entity("Plan is already owned by this customer!").build();
 
             if(customer.getData().getMoney() < plan.getData().getCost())
                 return Response.status(400).entity("Not enough money to complete purchase.").build();
