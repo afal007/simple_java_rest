@@ -8,44 +8,40 @@ USE testmethods;
 
 # Create tables
 CREATE TABLE `CUSTOMER` (
-	`id` VARCHAR(36) NOT NULL,
+	`id` VARCHAR(36) NOT NULL PRIMARY KEY,
 	`first_name` TEXT NOT NULL,
 	`last_name` TEXT NOT NULL,
 	`login` TEXT NOT NULL,
 	`pass` TEXT NOT NULL,
-	`money` INT(11) NOT NULL DEFAULT '0',
-	PRIMARY KEY (`id`)
+	`money` INT(11) NOT NULL DEFAULT '0'
 );
 
 CREATE TABLE `PLAN` (
-	`id` VARCHAR(36) NOT NULL,
+	`id` VARCHAR(36) NOT NULL PRIMARY KEY,
 	`name` TEXT NOT NULL,
 	`details` TEXT NOT NULL,
 	`min_seats` INT(11) NOT NULL,
 	`max_seats` INT(11) NOT NULL,
 	`fee_per_seat` INT(11) NOT NULL,
-	`cost` INT(11) NOT NULL,
-	PRIMARY KEY (`id`)
+	`cost` INT(11) NOT NULL
 );
 
 CREATE TABLE `SUBSCRIPTION` (
-	`id` VARCHAR(36) NOT NULL,
+	`id` VARCHAR(36) NOT NULL PRIMARY KEY,
 	`plan_id` TEXT NOT NULL,
 	`customer_id` TEXT NOT NULL,
 	`used_seats` INT(11) NOT NULL,
-	`status` ENUM('PROVISIONING', 'DONE') NOT NULL,
-	PRIMARY KEY (`id`)
+	`status` ENUM('PROVISIONING', 'DONE') NOT NULL
 );
 
 CREATE TABLE `USER` (
-	`id` VARCHAR(36) NULL,
+	`id` VARCHAR(36) NULL PRIMARY KEY,
 	`customer_id` TEXT NULL,
 	`first_name` TEXT NOT NULL,
 	`last_name` TEXT NOT NULL,
 	`login` TEXT NOT NULL,
 	`pass` TEXT NOT NULL,
-	`user_role` TEXT NOT NULL,
-	PRIMARY KEY (`id`)
+	`user_role` TEXT NOT NULL
 );
 
 CREATE TABLE `USER_ASSIGNMENT` (

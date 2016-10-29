@@ -291,8 +291,8 @@ public class DBService {
         }
     }
 
-    public static User getUserById(UUID userId) {
-        return getUserBy(QueryIndex.ID, userId.toString());
+    public static User getUserById(String userId) {
+        return getUserBy(QueryIndex.ID, userId);
     }
 
     public static UUID getUserIdByLogin(String userLogin) {
@@ -434,17 +434,34 @@ public class DBService {
     
     public static void subscribeUser(String userId, String subscriptionId) throws IllegalArgumentException{
     	synchronized(generalMutex){
-	    	User user = getUserById(UUID.fromString(userId));
-	    	if(ArrayUtils.contains(user.getSubscriptionIds(), subscriptionId))
+	    	User user = getUserById(userId);
+	    	Subscription subscription = getSubscriptionById(subscriptionId);
+	    	if(ArrayUtils.contains(user.getSubscriptionIds(), UUID.fromString(subscriptionId)))
 	    		throw new IllegalArgumentException("user is already subscribed to this");
 	    	else{
 	    		
 	    		try{
+	    			//1. assign subscription to user
 	    			Statement statement = connection.createStatement();
 	    			statement.executeUpdate(
 						String.format(INSERT_USER_ASSIGNMENT, 
 								userId,
 								subscriptionId));
+	    			
+	    			//2. take free seat from subscription
+	    			ResultSet rs = statement.executeQuery(
+	                        String.format(
+	                                "SELECT * FROM SUBSCRIPTION WHERE id='%s'",
+	                                subscriptionId));
+	                if(rs.next()) {
+	                    int total = rs.getInt("used_seats") + 1;
+	                    if (total > getPlanById(subscription.getServicePlanId()).getData().getMaxSeats())
+	                    	throw new IllegalArgumentException("Insufficient subscription seats!");
+	                    
+	                    rs.updateInt("used_seats", total);
+	                    rs.updateRow();
+	                    System.err.println("TOTAL " + total);
+	                }
 	    		}catch(SQLException ex){
 	    			logger.debug(ex.getMessage(), ex);
 	                throw new RuntimeException(ex);

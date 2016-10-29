@@ -188,7 +188,7 @@ public class RestService {
     @Path("/get_user_data/{user_id}")
     //@Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUserData(@PathParam("user_id") UUID userId) {
+    public Response getUserData(@PathParam("user_id") String userId) {
         try {
             User user = DBService.getUserById(userId);
             String response = JsonMapper.toJson(user, true);
