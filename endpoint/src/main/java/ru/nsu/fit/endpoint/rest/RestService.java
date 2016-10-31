@@ -231,7 +231,7 @@ public class RestService {
             Customer customer = DBService.getCustomerById(customerId);
             Plan plan = DBService.getPlanById(planId);
             
-            if(DBService.isPlanOwned(customerId.toString(), planId.toString()))
+            if(DBService.isPlanOwned(customerId, planId))
             	return Response.status(400).entity("Plan is already owned by this customer!").build();
 
             if(customer.getData().getMoney() < plan.getData().getCost())
@@ -248,7 +248,7 @@ public class RestService {
 
     @RolesAllowed("CUSTOMER")
     @PUT
-    @Path("/subscribe_user/") //check customer's funds. if enough, subscribe user
+    @Path("/subscribe_user") //check customer's funds. if enough, subscribe user
     public Response subscribeUser(@HeaderParam("Authorization") String auth, @QueryParam("userId") String userId, @QueryParam("subscriptionId") String subscriptionId){
     	try{
     		String login = getLogin(auth);
@@ -272,7 +272,7 @@ public class RestService {
     
     @RolesAllowed("CUSTOMER")
     @PUT
-    @Path("/unsubscribe_user/")
+    @Path("/unsubscribe_user")
     public Response unsubscribeUser(@QueryParam("userId") String userId, @QueryParam("subscriptionId") String subscriptionId){
     	try{
     		DBService.unsubscribeUser(userId, subscriptionId);

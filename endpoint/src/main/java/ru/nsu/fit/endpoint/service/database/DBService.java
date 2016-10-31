@@ -337,14 +337,14 @@ public class DBService {
         }
     }
     
-    public static boolean isPlanOwned(String customerId, String planId){
+    public static boolean isPlanOwned(UUID customerId, UUID planId){
     	synchronized(generalMutex){
     		try{
     			Statement statement = connection.createStatement();
     			ResultSet rs = statement.executeQuery(
     					String.format(
     							"SELECT id FROM SUBSCRIPTION WHERE customer_id='%s' AND plan_id='%s'",
-    							customerId, planId));
+    							customerId.toString(), planId.toString()));
     			if(rs.next())
     				return true;
 				else
@@ -572,8 +572,8 @@ public class DBService {
             // 178.49.4.144 MySQL server home, user: test_methods_remote_user, pass: 1q2w3e
             connection = DriverManager
                     .getConnection(
-                            "jdbc:mysql://localhost:3306/testmethods?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false",
-                            "test_methods_user",
+                            "jdbc:mysql://178.49.4.144:3306/testmethods?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false",
+                            "test_methods_remote_user",
                             "1q2w3e");
         } catch (SQLException ex) {
             logger.debug("Connection Failed! Check output console", ex);
