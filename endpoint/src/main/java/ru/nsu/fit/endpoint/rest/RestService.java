@@ -13,7 +13,6 @@ import ru.nsu.fit.endpoint.service.database.data.Subscription;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadUserException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadCustomerException;
-import ru.nsu.fit.endpoint.service.database.exceptions.BadSubscriptionException;
 import ru.nsu.fit.endpoint.shared.JsonMapper;
 
 import javax.annotation.security.RolesAllowed;
@@ -113,6 +112,18 @@ public class RestService {
     	} catch (RuntimeException ex){
     		return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
     	}
+    }
+
+    @RolesAllowed({"ADMIN","CUSTOMER"})
+    @DELETE
+    @Path("/delete_user/{user_id}")
+    public Response deleteUser(@PathParam("user_id") UUID userId){
+        try{
+            DBService.deleteUser(userId); //TODO add negative response if no user found
+            return Response.status(200).entity("Customer " + userId.toString() + " is now deleted").build();
+        } catch (RuntimeException ex){
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        }
     }
 
     @RolesAllowed({"ADMIN", "CUSTOMER"})
@@ -281,7 +292,22 @@ public class RestService {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         }
     }
-    
+
+    @RolesAllowed("CUSTOMER")
+    @PUT
+    @Path("/change_user_role/{user_id}/{role}")
+    public Response changeUserRole(@HeaderParam("Authorization") String auth, @PathParam("user_id") String userId, @PathParam("role") String role){
+        try{
+            String login = getLogin(auth);
+
+            DBService.changeUserRole(userId, role);
+
+            return Response.status(200).entity("Succesfully assigned user " + userId.toString() + " new role " + role).build();
+        }catch (IllegalArgumentException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        }
+    }
+
     private String getLogin(String auth) {
         String login = auth.split(" ")[1];
 

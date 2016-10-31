@@ -19,6 +19,7 @@ import ru.nsu.fit.endpoint.service.database.exceptions.BadUserException;
 import ru.nsu.fit.endpoint.service.database.data.Plan;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadSubscriptionException;
+import ru.nsu.fit.endpoint.shared.ExternalSubscriptionHandler;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -44,6 +45,9 @@ public class DBService {
 
     private static final String INSERT_USER = "INSERT INTO USER(id, customer_id, first_name, last_name, login, pass, user_role) values ('%s', '%s', '%s', '%s', '%s', '%s', '%s')";
 
+    private static final String DELETE_USER = "DELETE FROM USER WHERE id='%s'";
+
+
     private static final String SELECT_USER_ID = "SELECT id FROM USER WHERE login='%s'";
     private static final String SELECT_USER_BY_ID = "SELECT * FROM USER WHERE id='%s'";
     private static final String SELECT_USER_BY_LOGIN = "SELECT * FROM USER WHERE login='%s'";
@@ -60,12 +64,16 @@ public class DBService {
 
     private static final String INSERT_SUBSCRIPTION = "INSERT INTO subscription(id, customer_id, plan_id, used_seats, status) VALUES ('%s', '%s', '%s', '%s', '%s')";
 
+    private static final String SELECT_SUBSCRIPTION = "SELECT * FROM subscription WHERE id='%s'";
+
+
     private static final String INSERT_USER_ASSIGNMENT = "INSERT INTO USER_ASSIGNMENT(user_id, subscription_id) values ('%s', '%s')";
     private static final String SELECT_USER_ASSIGNMENT_SUBSCRIPTION = "SELECT * FROM USER_ASSIGNMENT WHERE user_id='%s' AND subscription_id='%s'";
     private static final String DELETE_USER_ASSIGNMENT = "DELETE FROM USER_ASSIGNMENT WHERE user_id='%s' AND subscription_id='%s'";
-    
+
     private static final Logger logger = LoggerFactory.getLogger("DB_LOG");
     private static final Object generalMutex = new Object();
+
     private static Connection connection;
 
     static {
@@ -128,6 +136,9 @@ public class DBService {
                     UUID.randomUUID(),
                     customerId,
                     planId);
+
+            if(isExternal)
+                new ExternalSubscriptionHandler(subscription).run();
 
             try {
                 Statement statement = connection.createStatement();
@@ -227,6 +238,29 @@ public class DBService {
                 }
                 else {
                     throw new IllegalArgumentException("Customer with id '" + customerId + " was not found");
+                }
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
+    public static void updateSubscription(Subscription subscription) {
+        synchronized (generalMutex) {
+            logger.info("Try to update subscription");
+
+            try {
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(
+                        String.format(
+                                SELECT_SUBSCRIPTION,
+                                subscription.getId()));
+                if(rs.next()) {
+                    rs.updateString("plan_id", subscription.getServicePlanId().toString());
+                    rs.updateString("customer_id", subscription.getCustomerId().toString());
+                    rs.updateString("status", subscription.getData().getStatus().toString());
+                    rs.updateInt("used_seats", subscription.getData().getUsedSeats());
                 }
             } catch (SQLException ex) {
                 logger.debug(ex.getMessage(), ex);
@@ -336,7 +370,23 @@ public class DBService {
             }
         }
     }
-    
+
+    public static void deleteUser(UUID userId) {
+        synchronized (generalMutex) {
+            logger.info("Trying to delete plan with id "+ userId.toString());
+            try {
+                Statement statement = connection.createStatement();
+                statement.executeUpdate(
+                        String.format(
+                                DELETE_USER,
+                                userId.toString()));
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
     public static boolean isPlanOwned(UUID customerId, UUID planId){
     	synchronized(generalMutex){
     		try{
@@ -353,6 +403,26 @@ public class DBService {
     			throw new RuntimeException(ex);
     		}
     	}
+    }
+
+    public static void changeUserRole(String userId, String role) {
+        synchronized (generalMutex) {
+            logger.info("Try to update subscription");
+
+            try {
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(
+                        String.format(
+                                SELECT_USER_BY_ID,
+                                userId));
+                if(rs.next()) {
+                    rs.updateString("role", role);
+                }
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
     }
 
     private enum QueryIndex {ID, LOGIN}
@@ -493,8 +563,8 @@ public class DBService {
 								userId,
 								subscriptionId));
 	    			
-	    			//2. take free seat from subscription
-	    			updateSubscriptionSeats(subscriptionId, -1);
+	    			//2. Add used seat to subscription
+	    			updateSubscriptionSeats(subscriptionId, 1);
 	    		}catch(SQLException ex){
 	    			logger.debug(ex.getMessage(), ex);
 	                throw new RuntimeException(ex);
@@ -512,12 +582,15 @@ public class DBService {
 	    									SELECT_USER_ASSIGNMENT_SUBSCRIPTION, 
 	    									userId, subscriptionId));
 	    		if (rs.next()){ //found that subscription
-	    			statement.executeUpdate(
+	    			//1. Delete user-subscription assignment
+                    statement.executeUpdate(
 								String.format(
 										DELETE_USER_ASSIGNMENT, 
 										userId, 
 										subscriptionId));
-	    		
+
+                    //2. Remove used seat from subscription
+	    		    updateSubscriptionSeats(subscriptionId, -1);
 	    		}
 	    		else{
 	    			throw new IllegalArgumentException("user doesn't have this subscription");
