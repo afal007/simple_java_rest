@@ -108,6 +108,9 @@ public class BuildVerificationTest {
 
     @Parameter("Created user")
     User testUser = null;
+    
+    @Parameter("Created plan id")
+    UUID testPlanId = null;
 
 
     @Test(groups = "testsWithCustomer")
@@ -242,7 +245,8 @@ public class BuildVerificationTest {
         Assert.assertEquals(response.getStatus(), 200);
         AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
     }
-    @Test
+    
+    @Test(groups="plan")
     @Title("Create Plan")
     @Description("Create plan via REST API")
     @Severity(SeverityLevel.CRITICAL)
@@ -265,8 +269,12 @@ public class BuildVerificationTest {
         				testFairy.person().fullName(),
         				10, 1, 1, 10)
         		, MediaType.APPLICATION_JSON));
+        
+        String responseText = response.readEntity(String.class);
+        testPlanId = UUID.fromString(responseText);
+        
         Assert.assertEquals(response.getStatus(), 200);
-        AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
+        AllureUtils.saveTextLog("Create Plan Response: " + responseText);
     }
     
     @Test(dependsOnMethods = "createCustomer", groups = "testsWithCustomer")
@@ -293,6 +301,29 @@ public class BuildVerificationTest {
         				10, 1, 1, 10)
         		, MediaType.APPLICATION_JSON));
         Assert.assertEquals(response.getStatus(), 401);
+        AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
+    }
+    
+    @Test(dependsOnGroups="plan") // last test with testCustomer
+    @Title("delete Plan")
+    @Description("delete Plan via REST service")
+    @Severity(SeverityLevel.CRITICAL)
+    @Features("Plan feature")
+    public void deletePlan() {
+        ClientConfig clientConfig = new ClientConfig();
+        AllureUtils.saveTextLog("delete plan test: " + testPlanId.toString());
+
+        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic("admin", "setup");
+        clientConfig.register(feature) ;
+
+        clientConfig.register(JacksonFeature.class);
+
+        Client client = ClientBuilder.newClient(clientConfig);
+
+        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("delete_plan").path(testPlanId.toString());
+
+        Response response =	webTarget.request().delete(Response.class);
+        Assert.assertEquals(response.getStatus(), 200);
         AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
     }
 

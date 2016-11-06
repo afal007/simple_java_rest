@@ -83,8 +83,8 @@ public class RestService {
     public Response createPlan(String planDataJson){
         try {
             Plan.PlanData planData = JsonMapper.fromJson(planDataJson, Plan.PlanData.class);
-            DBService.createPlan(planData);
-            return Response.status(200).entity(planData.toString()).build();
+            UUID id = DBService.createPlan(planData);
+            return Response.status(200).entity(id.toString()).build();
         } catch (BadPlanException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         }

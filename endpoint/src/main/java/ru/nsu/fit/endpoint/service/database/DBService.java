@@ -157,7 +157,7 @@ public class DBService {
         }
     }
 
-    public static void createPlan(Plan.PlanData planData) throws BadPlanException{
+    public static UUID createPlan(Plan.PlanData planData) throws BadPlanException{
         synchronized (generalMutex) {
             logger.info("Try to create plan");
             logger.debug("plan data: " + planData.toString());
@@ -179,6 +179,7 @@ public class DBService {
                 logger.debug(ex.getMessage(), ex);
                 throw new RuntimeException(ex);
             }
+            return plan.getId();
         }
     }
 
@@ -645,9 +646,9 @@ public class DBService {
             // 178.49.4.144 MySQL server home, user: test_methods_remote_user, pass: 1q2w3e
             connection = DriverManager
                     .getConnection(
-                            "jdbc:mysql://178.49.4.144:3306/testmethods?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false",
-                            "test_methods_remote_user",
-                            "1q2w3e");
+                            "jdbc:mysql://localhost:3306/testmethods?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false",
+                            "user",
+                            "user");
         } catch (SQLException ex) {
             logger.debug("Connection Failed! Check output console", ex);
             throw new RuntimeException(ex);
