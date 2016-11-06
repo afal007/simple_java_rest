@@ -24,7 +24,9 @@ public class Customer extends Entity<Customer.CustomerData> {
     public UUID getId() {
         return id;
     }
-
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class CustomerData {

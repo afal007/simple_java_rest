@@ -26,8 +26,14 @@ public class User extends Entity<User.UserData> {
     public UUID getCustomerId() {
         return customerId;
     }
+    public void setCustomerId(UUID customerId) {
+        this.customerId = customerId;
+    }
     public UUID getId() {
         return id;
+    }
+    public void setId(UUID id) {
+        this.id = id;
     }
     public UUID[] getSubscriptionIds() {
         return subscriptionIds;
@@ -35,6 +41,7 @@ public class User extends Entity<User.UserData> {
     public void setSubscriptionIds(UUID[] ids){
     	subscriptionIds = ids;
     }
+
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class UserData {
