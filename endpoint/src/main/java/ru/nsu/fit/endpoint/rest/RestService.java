@@ -39,8 +39,8 @@ public class RestService {
     public Response createCustomer(String customerDataJson) {
         try {
             Customer.CustomerData customerData = JsonMapper.fromJson(customerDataJson, Customer.CustomerData.class);
-            DBService.createCustomer(customerData);
-            return Response.status(200).entity(customerData.toString()).build();
+            UUID id = DBService.createCustomer(customerData);
+            return Response.status(200).entity(id.toString()).build();
         } catch (BadCustomerException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         }
@@ -68,8 +68,8 @@ public class RestService {
                 //f u admin
                 return Response.status(Response.Status.UNAUTHORIZED).entity("You cannot access this resource").build();
             }
-            DBService.createUser(userData, customerId);
-            return Response.status(200).entity(userData.toString()).build();
+            UUID userId = DBService.createUser(userData, customerId);
+            return Response.status(200).entity(userId.toString()).build();
         }
         catch (BadUserException ex){
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
@@ -231,7 +231,7 @@ public class RestService {
     }
 
     @RolesAllowed("CUSTOMER")
-    @POST
+    @GET
     @Path("/buy_plan/{plan_id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -248,19 +248,19 @@ public class RestService {
             if(customer.getData().getMoney() < plan.getData().getCost())
                 return Response.status(400).entity("Not enough money to complete purchase.").build();
 
-            DBService.createSubscription(customerId, planId, plan.isExternal());
+            UUID newSubscriptionId = DBService.createSubscription(customerId, planId, plan.isExternal());
             DBService.updateCustomerMoney(customerId, - plan.getData().getCost());
 
-            return Response.status(200).entity("Succesfully purchased plan " + planId.toString()).build();
+            return Response.status(200).entity(newSubscriptionId.toString()).build();
         } catch (IllegalArgumentException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         }
     }
 
     @RolesAllowed("CUSTOMER")
-    @PUT
-    @Path("/subscribe_user") //check customer's funds. if enough, subscribe user
-    public Response subscribeUser(@HeaderParam("Authorization") String auth, @QueryParam("userId") String userId, @QueryParam("subscriptionId") String subscriptionId){
+    @GET
+    @Path("/subscribe_user/{user_id}/{subscription_id}") //check customer's funds. if enough, subscribe user
+    public Response subscribeUser(@HeaderParam("Authorization") String auth, @PathParam("user_id") String userId, @PathParam("subscription_id") String subscriptionId){
     	try{
     		String login = getLogin(auth);
             UUID customerId = DBService.getCustomerIdByLogin(login);
@@ -277,7 +277,7 @@ public class RestService {
     		DBService.subscribeUser(userId, subscriptionId);
         	return Response.status(200).entity("Succesfully assigned user " + userId.toString() + " to subscription " + subscriptionId.toString()).build();
     	}catch (IllegalArgumentException ex) {
-            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+            return Response.status(400).entity(ex.getMessage() + "\n" + userId + " " + subscriptionId + ExceptionUtils.getFullStackTrace(ex)).build();
         }
     }
     

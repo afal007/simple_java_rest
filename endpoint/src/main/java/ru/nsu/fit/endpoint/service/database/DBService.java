@@ -80,7 +80,7 @@ public class DBService {
         init();
     }
 
-    public static void createUser(User.UserData userData, UUID customerId) throws BadUserException{
+    public static UUID createUser(User.UserData userData, UUID customerId) throws BadUserException{
     	synchronized(generalMutex){
     		logger.info("Trying to create user");
 
@@ -97,6 +97,7 @@ public class DBService {
                                 user.getData().getLogin(),
                                 user.getData().getPass(),
                                 user.getData().getUserRole()));
+                return user.getId();
             } catch (SQLException ex) {
                 logger.debug(ex.getMessage(), ex);
                 throw new RuntimeException(ex);
@@ -104,7 +105,7 @@ public class DBService {
     	}
     }
 
-    public static void createCustomer(Customer.CustomerData customerData) throws BadCustomerException {
+    public static UUID createCustomer(Customer.CustomerData customerData) throws BadCustomerException {
         synchronized (generalMutex) {
             logger.info("Try to create customer");
 
@@ -120,6 +121,7 @@ public class DBService {
                                 customer.getData().getLogin(),
                                 customer.getData().getPass(),
                                 customer.getData().getMoney()));
+                return customer.getId();
             } catch (SQLException ex) {
                 logger.debug(ex.getMessage(), ex);
                 throw new RuntimeException(ex);
@@ -127,7 +129,7 @@ public class DBService {
         }
     }
 
-    public static void createSubscription(UUID customerId, UUID planId, boolean isExternal) {
+    public static UUID createSubscription(UUID customerId, UUID planId, boolean isExternal) {
         synchronized (generalMutex) {
             logger.info("Try to create subscription");
 
@@ -150,6 +152,7 @@ public class DBService {
                                 subscription.getServicePlanId(),
                                 0,
                                 subscription.getData().getStatus()));
+                return subscription.getId();
             } catch (SQLException ex) {
                 logger.debug(ex.getMessage(), ex);
                 throw new RuntimeException(ex);
@@ -252,7 +255,7 @@ public class DBService {
             logger.info("Try to update subscription");
 
             try {
-                Statement statement = connection.createStatement();
+                Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
                 ResultSet rs = statement.executeQuery(
                         String.format(
                                 SELECT_SUBSCRIPTION,
@@ -526,7 +529,7 @@ public class DBService {
     	synchronized(generalMutex){
     		Subscription subscription = getSubscriptionById(subscriptionId);
     		try{
-    		Statement statement = connection.createStatement();
+            Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 
 			ResultSet rs = statement.executeQuery(
                     String.format(

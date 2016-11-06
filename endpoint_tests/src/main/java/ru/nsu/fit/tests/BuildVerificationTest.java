@@ -111,6 +111,9 @@ public class BuildVerificationTest {
     
     @Parameter("Created plan id")
     UUID testPlanId = null;
+    
+    @Parameter("Created plan id")
+    UUID testSubscriptionId = null;
 
 
     @Test(groups = "testsWithCustomer")
@@ -148,7 +151,9 @@ public class BuildVerificationTest {
                 "    \"pass\":\"" + testCustomer.pass + "\",\n" +
                 "    \"money\":\"" + testCustomer.money + "\"\n" +
                 "}", MediaType.APPLICATION_JSON));
-        AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
+        Assert.assertEquals(response.getStatus(), 200);
+        testCustomer.id = UUID.fromString(response.readEntity(String.class));
+        AllureUtils.saveTextLog("Response: " + testCustomer.id.toString());
     }
 
     @Test(dependsOnMethods = "createCustomer", groups = "testsWithCustomer")
@@ -202,7 +207,7 @@ public class BuildVerificationTest {
         Invocation.Builder invocationBuilder =	webTarget.request(MediaType.APPLICATION_JSON);
         Fairy fairy = Fairy.create();
         testUser = new User(
-                        new UUID(0L, 0L),
+                        UUID.randomUUID(),
                         testCustomer.id,
                         null,
                         fairy.person().firstName(),
@@ -218,8 +223,10 @@ public class BuildVerificationTest {
                 "    \"pass\":\"" + testUser.pass + "\",\n" +
                 "    \"userRole\":\"" + testUser.userRole + "\"\n" +
                 "}", MediaType.APPLICATION_JSON));
+        
+        testUser.id = UUID.fromString(response.readEntity(String.class));
         Assert.assertEquals(response.getStatus(), 200);
-        AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
+        AllureUtils.saveTextLog("Created test user: " +  testUser.id.toString());
     }
     
     
@@ -290,7 +297,7 @@ public class BuildVerificationTest {
 
         Client client = ClientBuilder.newClient( clientConfig );
         
-        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("create_plan");
+        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("create_customer");
 
         Invocation.Builder invocationBuilder =	webTarget.request();
         
@@ -326,7 +333,55 @@ public class BuildVerificationTest {
         Assert.assertEquals(response.getStatus(), 200);
         AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
     }
+    
+    @Test(dependsOnMethods={"createCustomer", "createPlan"},groups={"subscription", "plan"})
+    @Title("buy Plan")
+    @Description("Buy Test Plan as Test Customer")
+    @Severity(SeverityLevel.CRITICAL)
+    @Features("Customer feature")
+    public void buyPlan(){
+        ClientConfig clientConfig = new ClientConfig();
 
+        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(testCustomer.login, testCustomer.pass);
+        clientConfig.register(feature) ;
+
+        clientConfig.register(JacksonFeature.class);
+
+        Client client = ClientBuilder.newClient(clientConfig);
+
+        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("buy_plan").path(testPlanId.toString());
+
+        Response response =	webTarget.request().get();
+        testSubscriptionId = UUID.fromString(response.readEntity(String.class));
+        Assert.assertEquals(response.getStatus(), 200);
+        AllureUtils.saveTextLog("Created test subscription: " + testSubscriptionId.toString());
+    }
+    
+    @Test(dependsOnMethods={"createUser", "createPlan"}, groups={"user", "subscription", "plan"})
+    @Title("subscribe User to Plan")
+    @Description("delete Plan via REST service")
+    @Severity(SeverityLevel.CRITICAL)
+    @Features("Customer feature")
+    public void subscribeUser(){
+    	ClientConfig clientConfig = new ClientConfig();
+
+        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(testCustomer.login, testCustomer.pass);
+        clientConfig.register(feature) ;
+
+        clientConfig.register(JacksonFeature.class);
+
+        Client client = ClientBuilder.newClient(clientConfig);
+
+        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest")
+        		.path("subscribe_user")
+        		.path(testUser.id.toString())
+        		.path(testSubscriptionId.toString());
+
+        Response response =	webTarget.request().get();
+       
+        AllureUtils.saveTextLog("Assign test user: " + response.readEntity(String.class));
+        Assert.assertEquals(response.getStatus(), 200);
+    }
 
     @Attachment(value="{0}",type="text/plain")
     public static String saveTextLog(String name, String msg) {
