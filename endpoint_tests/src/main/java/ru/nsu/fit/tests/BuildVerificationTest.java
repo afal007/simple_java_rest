@@ -5,6 +5,8 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeGroups;
 import org.testng.annotations.Test;
 import ru.nsu.fit.shared.AllureUtils;
 import ru.yandex.qatools.allure.annotations.*;
@@ -20,6 +22,11 @@ import java.util.UUID;
  */
 @Title("Build Verification Test")
 public class BuildVerificationTest {
+	private Fairy testFairy;
+	@BeforeClass
+	private void beforeClass(){
+		testFairy = Fairy.create();
+	}
     private class Customer {
         UUID id;
         String firstName;
@@ -86,6 +93,15 @@ public class BuildVerificationTest {
             }
         }
     }
+    
+    private static final String PLAN_TEMPLATE = "{\n"+
+    		"\"name\": \"%s\",\n"+
+    		"\"details\": \"%s\",\n"+
+    		"\"maxSeats\": %s,\n"+
+    		"\"minSeats\": %s,\n"+
+    		"\"feePerUnit\": %s,\n"+
+    		"\"cost\":%s\n"+
+"}";
 
     @Parameter("Created customer")
     Customer testCustomer = null;
@@ -94,7 +110,7 @@ public class BuildVerificationTest {
     User testUser = null;
 
 
-    @Test
+    @Test(groups = "testsWithCustomer")
     @Title("Create customer")
     @Description("Create customer via REST API")
     @Severity(SeverityLevel.BLOCKER)
@@ -115,7 +131,7 @@ public class BuildVerificationTest {
         Fairy fairy = Fairy.create();
 
         testCustomer = new Customer(
-                            new UUID(0L, 0L),
+                            UUID.randomUUID(),
                             fairy.person().firstName(),
                             fairy.person().lastName(),
                             fairy.person().email(),
@@ -132,7 +148,7 @@ public class BuildVerificationTest {
         AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
     }
 
-    @Test(dependsOnMethods = "createCustomer")
+    @Test(dependsOnMethods = "createCustomer", groups = "testsWithCustomer")
     @Title("Check login")
     @Description("Get customer id by login")
     @Severity(SeverityLevel.CRITICAL)
@@ -163,7 +179,7 @@ public class BuildVerificationTest {
         AllureUtils.saveTextLog("Response: " + testCustomer.id);
     }
 
-    @Test
+    @Test(groups = "testsWithCustomer")
     @Title("Create user")
     @Description("Create user via REST API")
     @Severity(SeverityLevel.CRITICAL)
@@ -197,15 +213,36 @@ public class BuildVerificationTest {
                 "    \"lastName\":\"" + testUser.lastName +"\",\n" +
                 "    \"login\":\"" + testUser.login +"\",\n" +
                 "    \"pass\":\"" + testUser.pass + "\",\n" +
-                "    \"role\":\"" + testUser.userRole + "\"\n" +
+                "    \"userRole\":\"" + testUser.userRole + "\"\n" +
                 "}", MediaType.APPLICATION_JSON));
-
+        Assert.assertEquals(response.getStatus(), 200);
         AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
     }
     
     
-    
-    @Test(groups={"admin"})
+    @Test(dependsOnMethods = "createCustomer", dependsOnGroups="testsWithCustomer") // last test with testCustomer
+    @Title("delete Customer")
+    @Description("delete Customer via REST service")
+    @Severity(SeverityLevel.CRITICAL)
+    @Features("Customer feature")
+    public void deleteCustomer() {
+        ClientConfig clientConfig = new ClientConfig();
+        AllureUtils.saveTextLog("delete customer test: " + testCustomer.id.toString());
+
+        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic("admin", "setup");
+        clientConfig.register(feature) ;
+
+        clientConfig.register(JacksonFeature.class);
+
+        Client client = ClientBuilder.newClient(clientConfig);
+
+        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("delete_customer").path(testCustomer.id.toString());
+
+        Response response =	webTarget.request().delete(Response.class);
+        Assert.assertEquals(response.getStatus(), 200);
+        AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
+    }
+    @Test
     @Title("Create Plan")
     @Description("Create plan via REST API")
     @Severity(SeverityLevel.CRITICAL)
@@ -221,18 +258,44 @@ public class BuildVerificationTest {
         WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("create_plan");
 
         Invocation.Builder invocationBuilder =	webTarget.request();
-
-        Response response = invocationBuilder.post(Entity.entity("{\n"+
-        		"\"name\": \"CoolEnterprise\",\n"+
-        		"\"details\": \"A plan for cool dudes.\",\n"+
-        		"\"maxSeats\": 100,\n"+
-        		"\"minSeats\": 1,\n"+
-        		"\"feePerUnit\": 1,\n"+
-        		"\"cost\":2\n"+
-"}", MediaType.APPLICATION_JSON));
+        
+        Response response = invocationBuilder.post(Entity.entity(
+        		String.format(PLAN_TEMPLATE, 
+        				testFairy.person().firstName(),
+        				testFairy.person().fullName(),
+        				10, 1, 1, 10)
+        		, MediaType.APPLICATION_JSON));
         Assert.assertEquals(response.getStatus(), 200);
         AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
     }
+    
+    @Test(dependsOnMethods = "createCustomer", groups = "testsWithCustomer")
+    @Title("Create Plan (Customer)")
+    @Description("Create plan via REST API with Customer credentials")
+    @Severity(SeverityLevel.CRITICAL)
+    @Features("Plan feature")
+    public void createPlanAsCustomer(){
+        ClientConfig clientConfig = new ClientConfig();
+        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(testCustomer.login, testCustomer.pass);
+        clientConfig.register( feature) ;
+        clientConfig.register(JacksonFeature.class);
+
+        Client client = ClientBuilder.newClient( clientConfig );
+        
+        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("create_plan");
+
+        Invocation.Builder invocationBuilder =	webTarget.request();
+        
+        Response response = invocationBuilder.post(Entity.entity(
+        		String.format(PLAN_TEMPLATE, 
+        				testFairy.person().firstName(),
+        				testFairy.person().fullName(),
+        				10, 1, 1, 10)
+        		, MediaType.APPLICATION_JSON));
+        Assert.assertEquals(response.getStatus(), 401);
+        AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
+    }
+
 
     @Attachment(value="{0}",type="text/plain")
     public static String saveTextLog(String name, String msg) {
