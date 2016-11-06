@@ -4,6 +4,7 @@ import io.codearte.jfairy.Fairy;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.jackson.JacksonFeature;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 import ru.nsu.fit.shared.AllureUtils;
 import ru.yandex.qatools.allure.annotations.*;
@@ -202,7 +203,9 @@ public class BuildVerificationTest {
         AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
     }
     
-    @Test
+    
+    
+    @Test(groups={"admin"})
     @Title("Create Plan")
     @Description("Create plan via REST API")
     @Severity(SeverityLevel.CRITICAL)
@@ -215,7 +218,7 @@ public class BuildVerificationTest {
 
         Client client = ClientBuilder.newClient( clientConfig );
         
-        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("create_user");
+        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("create_plan");
 
         Invocation.Builder invocationBuilder =	webTarget.request();
 
@@ -227,7 +230,7 @@ public class BuildVerificationTest {
         		"\"feePerUnit\": 1,\n"+
         		"\"cost\":2\n"+
 "}", MediaType.APPLICATION_JSON));
-
+        Assert.assertEquals(response.getStatus(), 200);
         AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
     }
 
