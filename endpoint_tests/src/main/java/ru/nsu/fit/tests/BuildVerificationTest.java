@@ -201,6 +201,35 @@ public class BuildVerificationTest {
 
         AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
     }
+    
+    @Test
+    @Title("Create Plan")
+    @Description("Create plan via REST API")
+    @Severity(SeverityLevel.CRITICAL)
+    @Features("Plan feature")
+    public void createPlan(){
+        ClientConfig clientConfig = new ClientConfig();
+        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic("admin", "setup");
+        clientConfig.register( feature) ;
+        clientConfig.register(JacksonFeature.class);
+
+        Client client = ClientBuilder.newClient( clientConfig );
+        
+        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("create_user");
+
+        Invocation.Builder invocationBuilder =	webTarget.request();
+
+        Response response = invocationBuilder.post(Entity.entity("{\n"+
+        		"\"name\": \"CoolEnterprise\",\n"+
+        		"\"details\": \"A plan for cool dudes.\",\n"+
+        		"\"maxSeats\": 100,\n"+
+        		"\"minSeats\": 1,\n"+
+        		"\"feePerUnit\": 1,\n"+
+        		"\"cost\":2\n"+
+"}", MediaType.APPLICATION_JSON));
+
+        AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
+    }
 
     @Attachment(value="{0}",type="text/plain")
     public static String saveTextLog(String name, String msg) {
