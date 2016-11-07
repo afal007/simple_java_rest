@@ -61,4 +61,36 @@ public class RestService {
 	    		.delete(Response.class);
 		return response;
 	}
+	
+	public Response createPlan(String planJson){
+		Response response = webTarget.path("create_plan").request(MediaType.APPLICATION_JSON)
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
+	    		.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
+	    		.post(Entity.entity(planJson, MediaType.APPLICATION_JSON));
+		return response;
+	}
+	
+	public Response deletePlan(String id){
+		Response response = webTarget.path("delete_plan").path(id).request()
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
+	    		.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
+	    		.delete(Response.class);
+		return response;
+	}
+	
+	public Response buyPlan(String id){
+		Response response = webTarget.path("buy_plan").path(id).request()
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
+	    		.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
+	    		.get();
+		return response;
+	}
+	
+	public Response subscribeUser(String userId, String subscriptionId){
+		Response response = webTarget.path("subscribe_user").path(userId).path(subscriptionId).request()
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
+	    		.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
+	    		.get();
+		return response;
+	}
 }
