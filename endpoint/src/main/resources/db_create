@@ -13,7 +13,8 @@ CREATE TABLE `CUSTOMER` (
 	`last_name` TEXT NOT NULL,
 	`login` TEXT NOT NULL,
 	`pass` TEXT NOT NULL,
-	`money` INT(11) NOT NULL DEFAULT '0'
+	`money` INT(11) NOT NULL DEFAULT '0',
+	UNIQUE(`login`)
 );
 
 CREATE TABLE `PLAN` (
@@ -41,7 +42,8 @@ CREATE TABLE `USER` (
 	`last_name` TEXT NOT NULL,
 	`login` TEXT NOT NULL,
 	`pass` TEXT NOT NULL,
-	`user_role` TEXT NOT NULL
+	`user_role` TEXT NOT NULL,
+	UNIQUE(`login`)
 );
 
 CREATE TABLE `USER_ASSIGNMENT` (
