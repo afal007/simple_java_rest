@@ -129,18 +129,6 @@ public class BuildVerificationTest {
     @Severity(SeverityLevel.BLOCKER)
     @Features("Admin feature")
     public void createCustomer() {
-        //ClientConfig clientConfig = new ClientConfig();
-
-        //HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic("admin", "setup");
-        //clientConfig.register( feature) ;
-
-        //clientConfig.register(JacksonFeature.class);
-
-        //Client client = ClientBuilder.newClient( clientConfig );
-
-        //WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("create_customer");
-
-        //Invocation.Builder invocationBuilder =	webTarget.request(MediaType.APPLICATION_JSON);
         Fairy fairy = Fairy.create();
 
         testCustomer = new Customer(
@@ -151,7 +139,6 @@ public class BuildVerificationTest {
                             "123StrPass",
                             10000);
 
-        //Response response = invocationBuilder.post(Entity.entity
         Response response = rest.configAuth("admin", "setup").createCustomer("{\n" +
                 "\t\"firstName\":\"" + testCustomer.firstName + "\",\n" +
                 "    \"lastName\":\"" + testCustomer.lastName +"\",\n" +
@@ -159,6 +146,7 @@ public class BuildVerificationTest {
                 "    \"pass\":\"" + testCustomer.pass + "\",\n" +
                 "    \"money\":\"" + testCustomer.money + "\"\n" +
                 "}");
+        
         Assert.assertEquals(response.getStatus(), 200);
         testCustomer.id = UUID.fromString(response.readEntity(String.class));
         AllureUtils.saveTextLog("Response: " + testCustomer.id.toString());
@@ -170,27 +158,10 @@ public class BuildVerificationTest {
     @Severity(SeverityLevel.CRITICAL)
     @Features("Customer feature")
     public void getCustomerIdByLogin() {
-        ClientConfig clientConfig = new ClientConfig();
-
-        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(testCustomer.login, testCustomer.pass);
-        clientConfig.register(feature) ;
-
-        clientConfig.register(JacksonFeature.class);
-
-        Client client = ClientBuilder.newClient( clientConfig );
-
-        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("get_customer_id/" + testCustomer.login);
-
-        Invocation.Builder invocationBuilder =	webTarget.request(MediaType.APPLICATION_JSON);
-
-        Response response = invocationBuilder.get();
-
-        //response looks like {"id":"00000-0000-0000-0000"}
-        //testCustomer.id = (UUID.fromString(response.readEntity(String.class).
-        //                                            split(":")[1].
-        //                                            replace("\"" , "").
-        //                                           replace("}" , "")));
-
+    	Response response = rest
+			.configAuth(testCustomer.login, testCustomer.pass)
+			.getCustomerIdByLogin(testCustomer.login);
+    	
         saveTextLog("Response", response.readEntity(String.class));
         AllureUtils.saveTextLog("Response: " + testCustomer.id);
     }

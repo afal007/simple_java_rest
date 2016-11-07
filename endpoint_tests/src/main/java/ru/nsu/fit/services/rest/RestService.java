@@ -43,4 +43,13 @@ public class RestService {
     		.post(Entity.entity(customerJson, MediaType.APPLICATION_JSON));
 		return response;
 	}
+	
+	public Response getCustomerIdByLogin(String login){
+		Response response = webTarget
+				.path("get_customer_id").path(login).request()
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
+	    		.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
+	    		.get();
+		return response;
+	}
 }
