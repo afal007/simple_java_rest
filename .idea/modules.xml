@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/test-methods.iml" filepath="$PROJECT_DIR$/.idea/test-methods.iml" />
+      <module fileurl="file://$PROJECT_DIR$/endpoint/endpoint.iml" filepath="$PROJECT_DIR$/endpoint/endpoint.iml" />
+      <module fileurl="file://$PROJECT_DIR$/endpoint_tests/endpoint-tests.iml" filepath="$PROJECT_DIR$/endpoint_tests/endpoint-tests.iml" />
     </modules>
   </component>
 </project>

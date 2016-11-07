@@ -17,6 +17,18 @@
       <profile default="true" name="Default" enabled="false">
         <processorPath useClasspath="true" />
       </profile>
+      <profile default="false" name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="endpoint" />
+        <module name="endpoint-tests" />
+      </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="endpoint" target="1.7" />
+      <module name="endpoint-tests" target="1.7" />
+    </bytecodeTargetLevel>
   </component>
 </project>
