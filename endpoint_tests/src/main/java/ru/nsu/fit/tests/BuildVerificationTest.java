@@ -116,6 +116,12 @@ public class BuildVerificationTest {
     @Parameter("Created user")
     User testUser = null;
     
+    @Parameter("Created user login")
+    User testUserLogin = null;
+    
+    @Parameter("Created user pass")
+    User testUserPass = null;
+    
     @Parameter("Created plan id")
     UUID testPlanId = null;
     
@@ -215,19 +221,7 @@ public class BuildVerificationTest {
     @Severity(SeverityLevel.CRITICAL)
     @Features("Customer feature")
     public void deleteCustomer() {
-        ClientConfig clientConfig = new ClientConfig();
-        AllureUtils.saveTextLog("delete customer test: " + testCustomer.id.toString());
-
-        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic("admin", "setup");
-        clientConfig.register(feature) ;
-
-        clientConfig.register(JacksonFeature.class);
-
-        Client client = ClientBuilder.newClient(clientConfig);
-
-        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("delete_customer").path(testCustomer.id.toString());
-
-        Response response =	webTarget.request().delete(Response.class);
+    	Response response = rest.configAuth("admin", "setup").deleteCustomer(testCustomer.id.toString());
         Assert.assertEquals(response.getStatus(), 200);
         AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
     }

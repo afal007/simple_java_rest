@@ -52,4 +52,13 @@ public class RestService {
 	    		.get();
 		return response;
 	}
+	
+	public Response deleteCustomer(String id){
+		Response response = webTarget
+				.path("delete_customer").path(id).request()
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
+	    		.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
+	    		.delete(Response.class);
+		return response;
+	}
 }
