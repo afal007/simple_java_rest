@@ -93,4 +93,12 @@ public class RestService {
 	    		.get();
 		return response;
 	}
+	
+	public Response unsubscribeUser(String userId, String subscriptionId){
+		Response response = webTarget.path("unsubscribe_user").path(userId).path(subscriptionId).request()
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
+	    		.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
+	    		.get();
+		return response;
+	}
 }

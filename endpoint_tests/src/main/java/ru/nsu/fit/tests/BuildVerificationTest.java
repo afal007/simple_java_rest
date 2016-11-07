@@ -287,7 +287,7 @@ public class BuildVerificationTest {
     
     @Test(dependsOnMethods={"createUser", "createPlan"}, groups={"user", "subscription", "plan"})
     @Title("subscribe User to Plan")
-    @Description("delete Plan via REST service")
+    @Description("subscribe Test User to Test Plan")
     @Severity(SeverityLevel.CRITICAL)
     @Features("Customer feature")
     public void subscribeUser(){
@@ -295,6 +295,19 @@ public class BuildVerificationTest {
         		.subscribeUser(testUser.id.toString(), testSubscriptionId.toString());
        
         AllureUtils.saveTextLog("Assign test user: " + response.readEntity(String.class));
+        Assert.assertEquals(response.getStatus(), 200);
+    }
+    
+    @Test(dependsOnMethods={"createUser", "createPlan"}, groups={"user", "subscription", "plan"})
+    @Title("unsubscribe User from Plan")
+    @Description("delete Plan via REST service")
+    @Severity(SeverityLevel.CRITICAL)
+    @Features("Customer feature")
+    public void unsubscribeUser(){
+        Response response =	rest.configAuth(testCustomer.login, testCustomer.pass)
+        		.unsubscribeUser(testUser.id.toString(), testSubscriptionId.toString());
+       
+        AllureUtils.saveTextLog("Remove User Assignment: " + response.readEntity(String.class));
         Assert.assertEquals(response.getStatus(), 200);
     }
 
