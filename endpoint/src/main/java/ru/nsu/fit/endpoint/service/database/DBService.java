@@ -80,7 +80,7 @@ public class DBService {
         init();
     }
 
-    public static void createUser(User.UserData userData, UUID customerId) throws BadUserException{
+    public static UUID createUser(User.UserData userData, UUID customerId) throws BadUserException{
     	synchronized(generalMutex){
     		logger.info("Trying to create user");
 
@@ -97,6 +97,7 @@ public class DBService {
                                 user.getData().getLogin(),
                                 user.getData().getPass(),
                                 user.getData().getUserRole()));
+                return user.getId();
             } catch (SQLException ex) {
                 logger.debug(ex.getMessage(), ex);
                 throw new RuntimeException(ex);
@@ -104,7 +105,7 @@ public class DBService {
     	}
     }
 
-    public static void createCustomer(Customer.CustomerData customerData) throws BadCustomerException {
+    public static UUID createCustomer(Customer.CustomerData customerData) throws BadCustomerException {
         synchronized (generalMutex) {
             logger.info("Try to create customer");
 
@@ -120,6 +121,7 @@ public class DBService {
                                 customer.getData().getLogin(),
                                 customer.getData().getPass(),
                                 customer.getData().getMoney()));
+                return customer.getId();
             } catch (SQLException ex) {
                 logger.debug(ex.getMessage(), ex);
                 throw new RuntimeException(ex);
@@ -127,7 +129,7 @@ public class DBService {
         }
     }
 
-    public static void createSubscription(UUID customerId, UUID planId, boolean isExternal) {
+    public static UUID createSubscription(UUID customerId, UUID planId, boolean isExternal) {
         synchronized (generalMutex) {
             logger.info("Try to create subscription");
 
@@ -150,6 +152,7 @@ public class DBService {
                                 subscription.getServicePlanId(),
                                 0,
                                 subscription.getData().getStatus()));
+                return subscription.getId();
             } catch (SQLException ex) {
                 logger.debug(ex.getMessage(), ex);
                 throw new RuntimeException(ex);
@@ -157,7 +160,7 @@ public class DBService {
         }
     }
 
-    public static void createPlan(Plan.PlanData planData) throws BadPlanException{
+    public static UUID createPlan(Plan.PlanData planData) throws BadPlanException{
         synchronized (generalMutex) {
             logger.info("Try to create plan");
             logger.debug("plan data: " + planData.toString());
@@ -179,6 +182,7 @@ public class DBService {
                 logger.debug(ex.getMessage(), ex);
                 throw new RuntimeException(ex);
             }
+            return plan.getId();
         }
     }
 
@@ -251,7 +255,7 @@ public class DBService {
             logger.info("Try to update subscription");
 
             try {
-                Statement statement = connection.createStatement();
+                Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
                 ResultSet rs = statement.executeQuery(
                         String.format(
                                 SELECT_SUBSCRIPTION,
@@ -525,7 +529,7 @@ public class DBService {
     	synchronized(generalMutex){
     		Subscription subscription = getSubscriptionById(subscriptionId);
     		try{
-    		Statement statement = connection.createStatement();
+            Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 
 			ResultSet rs = statement.executeQuery(
                     String.format(
@@ -645,9 +649,9 @@ public class DBService {
             // 178.49.4.144 MySQL server home, user: test_methods_remote_user, pass: 1q2w3e
             connection = DriverManager
                     .getConnection(
-                            "jdbc:mysql://178.49.4.144:3306/testmethods?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false",
-                            "test_methods_remote_user",
-                            "1q2w3e");
+                            "jdbc:mysql://localhost:3306/testmethods?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false",
+                            "user",
+                            "user");
         } catch (SQLException ex) {
             logger.debug("Connection Failed! Check output console", ex);
             throw new RuntimeException(ex);
