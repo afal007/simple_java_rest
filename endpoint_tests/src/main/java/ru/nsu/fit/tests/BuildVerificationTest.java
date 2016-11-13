@@ -167,8 +167,7 @@ public class BuildVerificationTest {
     	Response response = rest
 			.configAuth(testCustomer.login, testCustomer.pass)
 			.getCustomerIdByLogin(testCustomer.login);
-    	
-        saveTextLog("Response", response.readEntity(String.class));
+
         AllureUtils.saveTextLog("Response: " + testCustomer.id);
     }
 
@@ -309,10 +308,5 @@ public class BuildVerificationTest {
        
         AllureUtils.saveTextLog("Remove User Assignment: " + response.readEntity(String.class));
         Assert.assertEquals(response.getStatus(), 200);
-    }
-
-    @Attachment(value="{0}",type="text/plain")
-    public static String saveTextLog(String name, String msg) {
-        return msg;
     }
 }

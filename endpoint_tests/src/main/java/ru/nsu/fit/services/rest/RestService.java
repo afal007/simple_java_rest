@@ -36,7 +36,8 @@ public class RestService {
     	//	.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password);
     	return this;
     }
-	public Response createCustomer(String customerJson){
+
+    public Response createCustomer(String customerJson){
 		Response response = webTarget.path("create_customer").request(MediaType.APPLICATION_JSON)
     		.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
     		.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
