@@ -105,6 +105,7 @@ public class AuthenticationFilter implements javax.ws.rs.container.ContainerRequ
         //String userRole = userMgr.getUserRole(username);
         //Base64(admin:setup) = YWRtaW46c2V0dXA=
         String userRole = "";
+        System.err.println("USER TRYING TO LOGIN: " + username + " " + password);
         if (username.equals("admin") && password.equals("setup")) 
             userRole = "ADMIN";
         else{ // this is bad

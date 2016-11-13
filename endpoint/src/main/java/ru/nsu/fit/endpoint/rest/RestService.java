@@ -282,9 +282,9 @@ public class RestService {
     }
     
     @RolesAllowed("CUSTOMER")
-    @PUT
-    @Path("/unsubscribe_user")
-    public Response unsubscribeUser(@QueryParam("userId") String userId, @QueryParam("subscriptionId") String subscriptionId){
+    @GET
+    @Path("/unsubscribe_user/{user_id}/{subscription_id}")
+    public Response unsubscribeUser(@PathParam("user_id") String userId, @PathParam("subscription_id") String subscriptionId){
     	try{
     		DBService.unsubscribeUser(userId, subscriptionId);
         	return Response.status(200).entity("Succesfully freed user " + userId.toString() + " from subscription " + subscriptionId.toString()).build();
@@ -294,7 +294,7 @@ public class RestService {
     }
 
     @RolesAllowed("CUSTOMER")
-    @PUT
+    @GET
     @Path("/change_user_role/{user_id}/{role}")
     public Response changeUserRole(@HeaderParam("Authorization") String auth, @PathParam("user_id") String userId, @PathParam("role") String role){
         try{

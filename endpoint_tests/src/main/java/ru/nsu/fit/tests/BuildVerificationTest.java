@@ -7,6 +7,7 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeGroups;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import ru.nsu.fit.shared.AllureUtils;
 import ru.yandex.qatools.allure.annotations.*;
@@ -16,16 +17,22 @@ import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.UUID;
-
+import ru.nsu.fit.services.rest.RestService;;
 /**
  * @author Timur Zolotuhin (tzolotuhin@gmail.com)
  */
 @Title("Build Verification Test")
 public class BuildVerificationTest {
 	private Fairy testFairy;
+	private RestService rest;
 	@BeforeClass
 	private void beforeClass(){
 		testFairy = Fairy.create();
+		rest = new RestService();
+	}
+	@BeforeMethod
+	private void beforeMethod(){
+		rest.configAuth("",""); //reset authorization
 	}
     private class Customer {
         UUID id;
@@ -109,6 +116,12 @@ public class BuildVerificationTest {
     @Parameter("Created user")
     User testUser = null;
     
+    @Parameter("Created user login")
+    User testUserLogin = null;
+    
+    @Parameter("Created user pass")
+    User testUserPass = null;
+    
     @Parameter("Created plan id")
     UUID testPlanId = null;
     
@@ -122,18 +135,6 @@ public class BuildVerificationTest {
     @Severity(SeverityLevel.BLOCKER)
     @Features("Admin feature")
     public void createCustomer() {
-        ClientConfig clientConfig = new ClientConfig();
-
-        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic("admin", "setup");
-        clientConfig.register( feature) ;
-
-        clientConfig.register(JacksonFeature.class);
-
-        Client client = ClientBuilder.newClient( clientConfig );
-
-        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("create_customer");
-
-        Invocation.Builder invocationBuilder =	webTarget.request(MediaType.APPLICATION_JSON);
         Fairy fairy = Fairy.create();
 
         testCustomer = new Customer(
@@ -144,13 +145,14 @@ public class BuildVerificationTest {
                             "123StrPass",
                             10000);
 
-        Response response = invocationBuilder.post(Entity.entity("{\n" +
+        Response response = rest.configAuth("admin", "setup").createCustomer("{\n" +
                 "\t\"firstName\":\"" + testCustomer.firstName + "\",\n" +
                 "    \"lastName\":\"" + testCustomer.lastName +"\",\n" +
                 "    \"login\":\"" + testCustomer.login +"\",\n" +
                 "    \"pass\":\"" + testCustomer.pass + "\",\n" +
                 "    \"money\":\"" + testCustomer.money + "\"\n" +
-                "}", MediaType.APPLICATION_JSON));
+                "}");
+        
         Assert.assertEquals(response.getStatus(), 200);
         testCustomer.id = UUID.fromString(response.readEntity(String.class));
         AllureUtils.saveTextLog("Response: " + testCustomer.id.toString());
@@ -162,28 +164,10 @@ public class BuildVerificationTest {
     @Severity(SeverityLevel.CRITICAL)
     @Features("Customer feature")
     public void getCustomerIdByLogin() {
-        ClientConfig clientConfig = new ClientConfig();
+    	Response response = rest
+			.configAuth(testCustomer.login, testCustomer.pass)
+			.getCustomerIdByLogin(testCustomer.login);
 
-        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(testCustomer.login, testCustomer.pass);
-        clientConfig.register(feature) ;
-
-        clientConfig.register(JacksonFeature.class);
-
-        Client client = ClientBuilder.newClient( clientConfig );
-
-        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("get_customer_id/" + testCustomer.login);
-
-        Invocation.Builder invocationBuilder =	webTarget.request(MediaType.APPLICATION_JSON);
-
-        Response response = invocationBuilder.get();
-
-        //response looks like {"id":"00000-0000-0000-0000"}
-        //testCustomer.id = (UUID.fromString(response.readEntity(String.class).
-        //                                            split(":")[1].
-        //                                            replace("\"" , "").
-        //                                           replace("}" , "")));
-
-        saveTextLog("Response", response.readEntity(String.class));
         AllureUtils.saveTextLog("Response: " + testCustomer.id);
     }
 
@@ -236,19 +220,7 @@ public class BuildVerificationTest {
     @Severity(SeverityLevel.CRITICAL)
     @Features("Customer feature")
     public void deleteCustomer() {
-        ClientConfig clientConfig = new ClientConfig();
-        AllureUtils.saveTextLog("delete customer test: " + testCustomer.id.toString());
-
-        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic("admin", "setup");
-        clientConfig.register(feature) ;
-
-        clientConfig.register(JacksonFeature.class);
-
-        Client client = ClientBuilder.newClient(clientConfig);
-
-        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("delete_customer").path(testCustomer.id.toString());
-
-        Response response =	webTarget.request().delete(Response.class);
+    	Response response = rest.configAuth("admin", "setup").deleteCustomer(testCustomer.id.toString());
         Assert.assertEquals(response.getStatus(), 200);
         AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
     }
@@ -259,23 +231,12 @@ public class BuildVerificationTest {
     @Severity(SeverityLevel.CRITICAL)
     @Features("Plan feature")
     public void createPlan(){
-        ClientConfig clientConfig = new ClientConfig();
-        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic("admin", "setup");
-        clientConfig.register( feature) ;
-        clientConfig.register(JacksonFeature.class);
-
-        Client client = ClientBuilder.newClient( clientConfig );
-        
-        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("create_plan");
-
-        Invocation.Builder invocationBuilder =	webTarget.request();
-        
-        Response response = invocationBuilder.post(Entity.entity(
+        Response response = rest.configAuth("admin", "setup").createPlan(
         		String.format(PLAN_TEMPLATE, 
         				testFairy.person().firstName(),
         				testFairy.person().fullName(),
         				10, 1, 1, 10)
-        		, MediaType.APPLICATION_JSON));
+        		);
         
         String responseText = response.readEntity(String.class);
         testPlanId = UUID.fromString(responseText);
@@ -290,23 +251,12 @@ public class BuildVerificationTest {
     @Severity(SeverityLevel.CRITICAL)
     @Features("Plan feature")
     public void createPlanAsCustomer(){
-        ClientConfig clientConfig = new ClientConfig();
-        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(testCustomer.login, testCustomer.pass);
-        clientConfig.register( feature) ;
-        clientConfig.register(JacksonFeature.class);
-
-        Client client = ClientBuilder.newClient( clientConfig );
-        
-        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("create_customer");
-
-        Invocation.Builder invocationBuilder =	webTarget.request();
-        
-        Response response = invocationBuilder.post(Entity.entity(
+        Response response = rest.configAuth(testCustomer.login, testCustomer.pass).createPlan(
         		String.format(PLAN_TEMPLATE, 
         				testFairy.person().firstName(),
         				testFairy.person().fullName(),
         				10, 1, 1, 10)
-        		, MediaType.APPLICATION_JSON));
+        		);
         Assert.assertEquals(response.getStatus(), 401);
         AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
     }
@@ -317,19 +267,7 @@ public class BuildVerificationTest {
     @Severity(SeverityLevel.CRITICAL)
     @Features("Plan feature")
     public void deletePlan() {
-        ClientConfig clientConfig = new ClientConfig();
-        AllureUtils.saveTextLog("delete plan test: " + testPlanId.toString());
-
-        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic("admin", "setup");
-        clientConfig.register(feature) ;
-
-        clientConfig.register(JacksonFeature.class);
-
-        Client client = ClientBuilder.newClient(clientConfig);
-
-        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("delete_plan").path(testPlanId.toString());
-
-        Response response =	webTarget.request().delete(Response.class);
+        Response response =	rest.configAuth("admin", "setup").deletePlan(testPlanId.toString());
         Assert.assertEquals(response.getStatus(), 200);
         AllureUtils.saveTextLog("Response: " + response.readEntity(String.class));
     }
@@ -340,18 +278,7 @@ public class BuildVerificationTest {
     @Severity(SeverityLevel.CRITICAL)
     @Features("Customer feature")
     public void buyPlan(){
-        ClientConfig clientConfig = new ClientConfig();
-
-        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(testCustomer.login, testCustomer.pass);
-        clientConfig.register(feature) ;
-
-        clientConfig.register(JacksonFeature.class);
-
-        Client client = ClientBuilder.newClient(clientConfig);
-
-        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest").path("buy_plan").path(testPlanId.toString());
-
-        Response response =	webTarget.request().get();
+        Response response =	rest.configAuth(testCustomer.login, testCustomer.pass).buyPlan(testPlanId.toString());
         testSubscriptionId = UUID.fromString(response.readEntity(String.class));
         Assert.assertEquals(response.getStatus(), 200);
         AllureUtils.saveTextLog("Created test subscription: " + testSubscriptionId.toString());
@@ -359,32 +286,27 @@ public class BuildVerificationTest {
     
     @Test(dependsOnMethods={"createUser", "createPlan"}, groups={"user", "subscription", "plan"})
     @Title("subscribe User to Plan")
-    @Description("delete Plan via REST service")
+    @Description("subscribe Test User to Test Plan")
     @Severity(SeverityLevel.CRITICAL)
     @Features("Customer feature")
     public void subscribeUser(){
-    	ClientConfig clientConfig = new ClientConfig();
-
-        HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(testCustomer.login, testCustomer.pass);
-        clientConfig.register(feature) ;
-
-        clientConfig.register(JacksonFeature.class);
-
-        Client client = ClientBuilder.newClient(clientConfig);
-
-        WebTarget webTarget = client.target("http://localhost:8080/endpoint/rest")
-        		.path("subscribe_user")
-        		.path(testUser.id.toString())
-        		.path(testSubscriptionId.toString());
-
-        Response response =	webTarget.request().get();
+        Response response =	rest.configAuth(testCustomer.login, testCustomer.pass)
+        		.subscribeUser(testUser.id.toString(), testSubscriptionId.toString());
        
         AllureUtils.saveTextLog("Assign test user: " + response.readEntity(String.class));
         Assert.assertEquals(response.getStatus(), 200);
     }
-
-    @Attachment(value="{0}",type="text/plain")
-    public static String saveTextLog(String name, String msg) {
-        return msg;
+    
+    @Test(dependsOnMethods={"createUser", "createPlan"}, groups={"user", "subscription", "plan"})
+    @Title("unsubscribe User from Plan")
+    @Description("delete Plan via REST service")
+    @Severity(SeverityLevel.CRITICAL)
+    @Features("Customer feature")
+    public void unsubscribeUser(){
+        Response response =	rest.configAuth(testCustomer.login, testCustomer.pass)
+        		.unsubscribeUser(testUser.id.toString(), testSubscriptionId.toString());
+       
+        AllureUtils.saveTextLog("Remove User Assignment: " + response.readEntity(String.class));
+        Assert.assertEquals(response.getStatus(), 200);
     }
 }

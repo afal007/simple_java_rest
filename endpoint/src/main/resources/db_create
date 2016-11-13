@@ -13,7 +13,8 @@ CREATE TABLE `CUSTOMER` (
 	`last_name` TEXT NOT NULL,
 	`login` TEXT NOT NULL,
 	`pass` TEXT NOT NULL,
-	`money` INT(11) NOT NULL DEFAULT '0'
+	`money` INT(11) NOT NULL DEFAULT '0',
+	UNIQUE(`login`)
 );
 
 CREATE TABLE `PLAN` (
@@ -28,23 +29,24 @@ CREATE TABLE `PLAN` (
 
 CREATE TABLE `SUBSCRIPTION` (
 	`id` VARCHAR(36) NOT NULL PRIMARY KEY,
-	`plan_id` TEXT NOT NULL,
-	`customer_id` TEXT NOT NULL,
+	`plan_id` VARCHAR(36) NOT NULL,
+	`customer_id` VARCHAR(36) NOT NULL,
 	`used_seats` INT(11) NOT NULL,
 	`status` ENUM('PROVISIONING', 'DONE') NOT NULL
 );
 
 CREATE TABLE `USER` (
 	`id` VARCHAR(36) NULL PRIMARY KEY,
-	`customer_id` TEXT NULL,
+	`customer_id` VARCHAR(36) NULL,
 	`first_name` TEXT NOT NULL,
 	`last_name` TEXT NOT NULL,
 	`login` TEXT NOT NULL,
 	`pass` TEXT NOT NULL,
-	`user_role` TEXT NOT NULL
+	`user_role` TEXT NOT NULL,
+	UNIQUE(`login`)
 );
 
 CREATE TABLE `USER_ASSIGNMENT` (
-	`user_id` TEXT NOT NULL,
-	`subscription_id` TEXT NOT NULL,
+	`user_id` VARCHAR(36) NOT NULL,
+	`subscription_id` VARCHAR(36) NOT NULL,
 );
