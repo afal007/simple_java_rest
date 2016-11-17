@@ -53,7 +53,16 @@ public class RestService {
 	    		.get();
 		return response;
 	}
-	
+
+	public Response getCustomerData(String id) {
+		Response response = webTarget
+				.path("get_customer_data").path(id).request()
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
+				.get();
+		return response;
+	}
+
 	public Response deleteCustomer(String id){
 		Response response = webTarget
 				.path("delete_customer").path(id).request()

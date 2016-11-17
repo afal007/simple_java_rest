@@ -21,6 +21,8 @@ import ru.nsu.fit.services.rest.RestService;;
 /**
  * @author Timur Zolotuhin (tzolotuhin@gmail.com)
  */
+
+@Test(enabled = false)
 @Title("Build Verification Test")
 public class BuildVerificationTest {
 	private Fairy testFairy;
