@@ -110,6 +110,8 @@ public class BuildVerificationTest {
     		"\"cost\":%s\n"+
 "}";
 
+    private static
+
     @Parameter("Created customer")
     Customer testCustomer = null;
 

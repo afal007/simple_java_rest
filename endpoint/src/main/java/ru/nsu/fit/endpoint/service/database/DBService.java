@@ -649,8 +649,8 @@ public class DBService {
             // 178.49.4.144 MySQL server home, user: test_methods_remote_user, pass: 1q2w3e
             connection = DriverManager
                     .getConnection(
-                            "jdbc:mysql://localhost:3306/testmethods?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false",
-                            "test_methods_user",
+                            "jdbc:mysql://178.49.4.144:3306/testmethods?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false",
+                            "test_methods_remote_user",
                             "1q2w3e");
         } catch (SQLException ex) {
             logger.debug("Connection Failed! Check output console", ex);
