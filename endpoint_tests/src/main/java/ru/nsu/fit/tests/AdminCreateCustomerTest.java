@@ -43,10 +43,11 @@ public class AdminCreateCustomerTest {
     }
 
     @Test
-    @Title("Create customer")
+    @Title("Admin create customer")
     @Description("Create customer as admin via REST API")
     @Severity(SeverityLevel.BLOCKER)
     @Features("Authorization")
+    @Stories("Admin auth")
     public void test() {
         authorize();
         createCustomer();

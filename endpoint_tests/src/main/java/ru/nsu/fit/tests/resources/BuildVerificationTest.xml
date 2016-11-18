@@ -11,4 +11,16 @@
             <class name="ru.nsu.fit.tests.UserCreateUserTest" />
         </classes>
     </test>
+    <test name="Create plan tests">
+        <classes>
+            <class name="ru.nsu.fit.tests.CreatePlanTest" />
+        </classes>
+    </test>
+    <test name="Create subscription test">
+        <classes>
+            <class name="ru.nsu.fit.tests.CustomerBuyPlanWithSufficientFundsTest" />
+            <class name="ru.nsu.fit.tests.CustomerBuyPlanWithInsufficientFundsTest" />
+            <class name="ru.nsu.fit.tests.CustomerBuyPlanAlreadyOwnedTest" />
+        </classes>
+    </test>
 </suite>

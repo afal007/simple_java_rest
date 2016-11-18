@@ -104,7 +104,25 @@ public class RestService {
 	    		.delete(Response.class);
 		return response;
 	}
-	
+
+	public Response getPlanData(String id) {
+		Response response = webTarget
+				.path("get_plan_data").path(id).request()
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
+				.get();
+		return response;
+	}
+
+	public Response getSubscriptionData(String id) {
+		Response response = webTarget
+				.path("get_subscription_data").path(id).request()
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
+				.get();
+		return response;
+	}
+
 	public Response buyPlan(String id){
 		Response response = webTarget.path("buy_plan").path(id).request()
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)

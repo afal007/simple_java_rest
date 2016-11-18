@@ -19,6 +19,7 @@ import java.util.UUID;
 /**
  * author: Alexander Fal (falalexandr007@gmail.com)
  */
+@Title("User Create User Test")
 public class UserCreateUserTest {
     private static final String CUSTOMER_TEMPLATE = "{\n" +
             "\t\"firstName\":\"%s\",\n" +
@@ -52,10 +53,11 @@ public class UserCreateUserTest {
     }
 
     @Test
-    @Title("Create user")
+    @Title("User create user")
     @Description("Create user as customer via REST API")
     @Severity(SeverityLevel.BLOCKER)
     @Features("Authorization")
+    @Stories("User auth")
     public void test() {
         authorize("admin", "setup");
         createCustomer();
