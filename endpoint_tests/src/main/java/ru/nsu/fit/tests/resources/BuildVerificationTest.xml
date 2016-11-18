@@ -1,0 +1,14 @@
+<suite name="BuildVerificationTest">
+    <test name="Create customer tests">
+        <classes>
+            <class name="ru.nsu.fit.tests.AdminCreateCustomerTest" />
+            <class name="ru.nsu.fit.tests.CustomerCreateCustomerTest" />
+        </classes>
+    </test>
+    <test name="Create user tests">
+        <classes>
+            <class name="ru.nsu.fit.tests.CustomerCreateUserTest" />
+            <class name="ru.nsu.fit.tests.UserCreateUserTest" />
+        </classes>
+    </test>
+</suite>
