@@ -161,6 +161,48 @@ public class RestService {
         }
     }
 
+    @RolesAllowed({"ADMIN","CUSTOMER"})
+    @GET
+    @Path("/get_plan_data/{plan_id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPlanData(@PathParam("plan_id") UUID planId) {
+        try {
+
+            //TODO: Check if customer is allowed to fetch data for this id
+            Plan plan = DBService.getPlanById(planId);
+            String response = JsonMapper.toJson(plan, true);
+
+            return Response.status(200).entity(response).build();
+        } catch (IllegalArgumentException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        } catch (JsonProcessingException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        } catch (IOException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        }
+    }
+
+    @RolesAllowed({"ADMIN","CUSTOMER"})
+    @GET
+    @Path("/get_subscription_data/{subscription_id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getSubscriptionData(@PathParam("subscription_id") UUID subscriptionId) {
+        try {
+
+            //TODO: Check if customer is allowed to fetch data for this id
+            Subscription subscription = DBService.getSubscriptionById(subscriptionId);
+            String response = JsonMapper.toJson(subscription, true);
+
+            return Response.status(200).entity(response).build();
+        } catch (IllegalArgumentException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        } catch (JsonProcessingException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        } catch (IOException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        }
+    }
+
     @RolesAllowed("CUSTOMER")
     @GET
     @Path("/get_plan_id/{plan_name}")
@@ -265,8 +307,8 @@ public class RestService {
     		String login = getLogin(auth);
             UUID customerId = DBService.getCustomerIdByLogin(login);
             Customer customer = DBService.getCustomerById(customerId);
-            Subscription subscription = DBService.getSubscriptionById(subscriptionId);
-            Plan plan = DBService.getPlanById(subscription.getServicePlanId());
+            Subscription subscription = DBService.getSubscriptionById(UUID.fromString(subscriptionId));
+            Plan plan = DBService.getPlanById(subscription.getPlanId());
             if(subscription.getData().getStatus() == SubscriptionData.Status.PROVISIONING)
             	return Response.status(Status.CONFLICT).entity("Can't assign provisioning subscriptions!").build();
             if(subscription.getData().getUsedSeats() >= plan.getData().getMaxSeats())
