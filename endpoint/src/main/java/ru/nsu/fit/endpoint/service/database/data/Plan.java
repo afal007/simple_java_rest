@@ -40,9 +40,6 @@ public class Plan extends Entity<Plan.PlanData> {
         /* Не больше 999999 и не меньше 1 включительно */
         @JsonProperty("maxSeats")
         private int maxSeats;
-        /* Не больше 999999 и не меньше 1 включительно, minSeats <= maxSeats */
-        @JsonProperty("minSeats")
-        private int minSeats;
         /* Больше ли равно 0 но меньше либо равно 999999 */
         @JsonProperty("feePerUnit")
         private int feePerUnit;
@@ -67,12 +64,7 @@ public class Plan extends Entity<Plan.PlanData> {
         public void setMaxSeats(int maxSeats) {
             this.maxSeats = maxSeats;
         }
-        public int getMinSeats() {
-            return minSeats;
-        }
-        public void setMinSeats(int minSeats) {
-            this.minSeats = minSeats;
-        }
+
         public int getFeePerUnit() {
             return feePerUnit;
         }
@@ -94,34 +86,31 @@ public class Plan extends Entity<Plan.PlanData> {
                     "name='" + name + '\'' +
                     ", details='" + details + '\'' +
                     ", maxSeats=" + maxSeats +
-                    ", minSeats=" + minSeats +
                     ", feePerUnit=" + feePerUnit +
                     ", cost=" + cost +
                     '}';
         }
 
-        public PlanData(String name, String details, int maxSeats, int minSeats, int feePerUnit, int cost) throws BadPlanException {
+        public PlanData(String name, String details, int maxSeats, int feePerUnit, int cost) throws BadPlanException {
             this.name = name;
             this.details = details;
             this.maxSeats = maxSeats;
-            this.minSeats = minSeats;
             this.feePerUnit = feePerUnit;
             this.cost = cost;
 
-            validate(name, details, maxSeats, minSeats, feePerUnit);
+            validate(name, details, maxSeats, feePerUnit);
         }
         
         public PlanData(){}
 
         private void validate() throws BadPlanException {
-            validate(name, details, maxSeats, minSeats, feePerUnit);
+            validate(name, details, maxSeats,feePerUnit);
         }
 
-        private void validate(String name, String details, int maxSeats, int minSeats, int feePerUnit) throws BadPlanException {
+        private void validate(String name, String details, int maxSeats, int feePerUnit) throws BadPlanException {
             validateName(name);
             validateDetails(details);
-            validateMaxSeats(maxSeats, minSeats);
-            validateMinSeats(minSeats);
+            validateMaxSeats(maxSeats);
             validateFee(feePerUnit);
         }
 
@@ -138,16 +127,9 @@ public class Plan extends Entity<Plan.PlanData> {
             if (details.length() < 1) throw new BadPlanDetailsException(BadPlanDetailsException.SHORT_DETAILS_MESSAGE);
         }
 
-        private void validateMaxSeats(int maxSeats, int minSeats) throws BadPlanMaxSeatsException {
+        private void validateMaxSeats(int maxSeats) throws BadPlanMaxSeatsException {
             if (maxSeats > 999999) throw new BadPlanMaxSeatsException(BadPlanMaxSeatsException.BIG_MAXSEATS_MESSAGE);
             if (maxSeats < 1) throw new BadPlanMaxSeatsException(BadPlanMaxSeatsException.SMALL_MAXSEATS_MESSAGE);
-            if (minSeats > maxSeats)
-                throw new BadPlanMaxSeatsException(BadPlanMaxSeatsException.LESS_THAN_MINSEATS_MESSAGE);
-        }
-
-        private void validateMinSeats(int minSeats) throws BadPlanMinSeatsException {
-            if (minSeats > 999999) throw new BadPlanMinSeatsException(BadPlanMinSeatsException.BIG_MINSEATS_MESSAGE);
-            if (minSeats < 1) throw new BadPlanMinSeatsException(BadPlanMinSeatsException.SMALL_MINSEATS_MESSAGE);
         }
 
         private void validateFee(int fee) throws BadPlanFeeException {

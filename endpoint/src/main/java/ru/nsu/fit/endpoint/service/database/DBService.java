@@ -54,7 +54,7 @@ public class DBService {
     private static final String SELECT_USER_SUBSCRIPTIONS_BY_ID = "SELECT subscription_id FROM USER_ASSIGNMENT WHERE user_id='%s'";
     private static final String SELECT_USER_COUNT_SUBSCRIPTIONS = "SELECT COUNT(subscription_id) FROM USER_ASSIGNMENT WHERE user_id='%s'";
 
-    private static final String INSERT_PLAN = "INSERT INTO PLAN(id, name, details, min_seats, max_seats, fee_per_seat, cost) values ('%s', '%s', '%s', %s, %s, %s, %s)";
+    private static final String INSERT_PLAN = "INSERT INTO PLAN(id, name, details, max_seats, fee_per_seat, cost) values ('%s', '%s', '%s', %s, %s, %s)";
 
     private static final String SELECT_PLAN_ID_BY_NAME = "SELECT id FROM plan WHERE name='%s'";
     private static final String SELECT_PLAN = "SELECT * FROM plan WHERE id='%s'";
@@ -174,7 +174,6 @@ public class DBService {
                                 plan.getId(),
                                 plan.getData().getName(),
                                 plan.getData().getDetails(),
-                                plan.getData().getMinSeats(),
                                 plan.getData().getMaxSeats(),
                                 plan.getData().getFeePerUnit(),
                                 plan.getData().getCost()));
@@ -315,7 +314,7 @@ public class DBService {
                     Integer fee = rs.getInt("fee_per_seat");
                     Integer cost = rs.getInt("cost");
 
-                    return new Plan(new Plan.PlanData(name, details, maxSeats, minSeats, fee, cost), id);
+                    return new Plan(new Plan.PlanData(name, details, maxSeats, fee, cost), id);
                 }
                 else {
                     throw new IllegalArgumentException("Plan with id '" + planId + " was not found");
@@ -537,8 +536,7 @@ public class DBService {
                             subscriptionId));
             if(rs.next()) {
                 int total = rs.getInt("used_seats") + amount;
-                if (total > getPlanById(subscription.getServicePlanId()).getData().getMaxSeats() ||
-            		total < getPlanById(subscription.getServicePlanId()).getData().getMinSeats())
+                if (total > getPlanById(subscription.getServicePlanId()).getData().getMaxSeats())
                 		throw new IllegalArgumentException("Can't update subscription seats!");                
                 rs.updateInt("used_seats", total);
                 rs.updateRow();
