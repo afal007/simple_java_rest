@@ -136,6 +136,5 @@ public class Plan extends Entity<Plan.PlanData> {
             if (fee < 0) throw new BadPlanFeeException(BadPlanFeeException.NEGATIVE_FEE_MESSAGE);
             if (fee > 999999) throw new BadPlanFeeException(BadPlanFeeException.BIG_FEE_MESSAGE);
         }
-
     }
 }

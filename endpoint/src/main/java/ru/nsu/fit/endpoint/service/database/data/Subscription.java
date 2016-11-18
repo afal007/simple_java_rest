@@ -3,8 +3,6 @@ package ru.nsu.fit.endpoint.service.database.data;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import ru.nsu.fit.endpoint.service.database.data.User.UserData.UserRole;
-
 import java.util.UUID;
 
 /**
@@ -14,13 +12,13 @@ import java.util.UUID;
 public class Subscription extends Entity<Subscription.SubscriptionData>{
     private UUID id;
     private UUID customerId;
-    private UUID servicePlanId;
+    private UUID PlanId;
 
-    public Subscription(SubscriptionData data, UUID id, UUID customerId, UUID servicePlanId) {
+    public Subscription(SubscriptionData data, UUID id, UUID customerId, UUID PlanId) {
         super(data);
         this.id = id;
         this.customerId = customerId;
-        this.servicePlanId = servicePlanId;
+        this.PlanId = PlanId;
     }
 
     public UUID getId() {
@@ -35,11 +33,11 @@ public class Subscription extends Entity<Subscription.SubscriptionData>{
     public void setCustomerId(UUID customerId) {
         this.customerId = customerId;
     }
-    public UUID getServicePlanId() {
-        return servicePlanId;
+    public UUID getPlanId() {
+        return PlanId;
     }
-    public void setServicePlanId(UUID servicePlanId) {
-        this.servicePlanId = servicePlanId;
+    public void setPlanId(UUID planId) {
+        this.PlanId = planId;
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -93,7 +91,7 @@ public class Subscription extends Entity<Subscription.SubscriptionData>{
         }
 
         public SubscriptionData(Status status) {
-            this.usedSeats = 1;
+            this.usedSeats = 0;
             this.status = status;
         }
         

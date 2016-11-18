@@ -4,8 +4,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mysql.cj.api.mysqla.result.Resultset.Concurrency;
-
 import ru.nsu.fit.endpoint.service.database.data.Customer;
 import ru.nsu.fit.endpoint.service.database.data.Plan;
 import ru.nsu.fit.endpoint.service.database.data.Subscription;
@@ -16,14 +14,10 @@ import ru.nsu.fit.endpoint.service.database.data.User;
 import ru.nsu.fit.endpoint.service.database.data.User.UserData.UserRole;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadUserException;
-import ru.nsu.fit.endpoint.service.database.data.Plan;
-import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
-import ru.nsu.fit.endpoint.service.database.exceptions.BadSubscriptionException;
 import ru.nsu.fit.endpoint.shared.ExternalSubscriptionHandler;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -149,7 +143,7 @@ public class DBService {
                                 INSERT_SUBSCRIPTION,
                                 subscription.getId(),
                                 subscription.getCustomerId(),
-                                subscription.getServicePlanId(),
+                                subscription.getPlanId(),
                                 0,
                                 subscription.getData().getStatus()));
                 return subscription.getId();
@@ -260,7 +254,7 @@ public class DBService {
                                 SELECT_SUBSCRIPTION,
                                 subscription.getId()));
                 if(rs.next()) {
-                    rs.updateString("plan_id", subscription.getServicePlanId().toString());
+                    rs.updateString("plan_id", subscription.getPlanId().toString());
                     rs.updateString("customer_id", subscription.getCustomerId().toString());
                     rs.updateString("status", subscription.getData().getStatus().toString());
                     rs.updateInt("used_seats", subscription.getData().getUsedSeats());
@@ -309,7 +303,6 @@ public class DBService {
                     UUID id = UUID.fromString(rs.getString("id"));
                     String name = rs.getString("name");
                     String details = rs.getString("details");
-                    Integer minSeats = rs.getInt("min_seats");
                     Integer maxSeats = rs.getInt("max_seats");
                     Integer fee = rs.getInt("fee_per_seat");
                     Integer cost = rs.getInt("cost");
@@ -526,7 +519,7 @@ public class DBService {
     public static void updateSubscriptionSeats(String subscriptionId, int amount){
     	
     	synchronized(generalMutex){
-    		Subscription subscription = getSubscriptionById(subscriptionId);
+    		Subscription subscription = getSubscriptionById(UUID.fromString(subscriptionId));
     		try{
             Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 
@@ -536,7 +529,7 @@ public class DBService {
                             subscriptionId));
             if(rs.next()) {
                 int total = rs.getInt("used_seats") + amount;
-                if (total > getPlanById(subscription.getServicePlanId()).getData().getMaxSeats())
+                if (total > getPlanById(subscription.getPlanId()).getData().getMaxSeats())
                 		throw new IllegalArgumentException("Can't update subscription seats!");                
                 rs.updateInt("used_seats", total);
                 rs.updateRow();
@@ -604,20 +597,20 @@ public class DBService {
     	}
     }
     
-    public static Subscription getSubscriptionById(String id){
+    public static Subscription getSubscriptionById(UUID id){
     	synchronized (generalMutex){
             try {
                 Statement statement = connection.createStatement();
                 ResultSet rs = statement.executeQuery(String.format(
                 		"SELECT * FROM SUBSCRIPTION WHERE id='%s'", 
-                		id));
+                		id.toString()));
                 if(rs.next()) {
                     UUID customerId = UUID.fromString(rs.getString("customer_id"));
                     UUID planId = UUID.fromString(rs.getString("plan_id"));
                     int usedSeats = rs.getInt("used_seats");
                     SubscriptionData.Status status = Status.fromString(rs.getString("status"));
                     
-                    Subscription subscription = new Subscription(new Subscription.SubscriptionData(status), UUID.fromString(id), customerId, planId);
+                    Subscription subscription = new Subscription(new Subscription.SubscriptionData(status), id, customerId, planId);
                     subscription.getData().setUsedSeats(usedSeats);
                     
                     return subscription;
