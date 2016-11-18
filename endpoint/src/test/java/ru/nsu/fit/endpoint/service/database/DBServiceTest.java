@@ -46,7 +46,7 @@ public class DBServiceTest {
 
 	testPlan = new Plan(new Plan.PlanData(fairy.person().firstName(), 
 					fairy.textProducer().latinSentence(), 
-					999, 1, 1, 10), UUID.randomUUID());
+					999, 1, 10), UUID.randomUUID());
 	
 	testSubscription = new Subscription(new Subscription.SubscriptionData(Subscription.SubscriptionData.Status.DONE), 
 					UUID.randomUUID(), 
