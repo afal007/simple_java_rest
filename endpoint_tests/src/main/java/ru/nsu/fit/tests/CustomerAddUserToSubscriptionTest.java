@@ -7,8 +7,11 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import ru.nsu.fit.services.rest.RestService;
 import ru.nsu.fit.shared.AllureUtils;
+import ru.nsu.fit.shared.JsonMapper;
 import ru.nsu.fit.shared.classmock.Customer;
 import ru.nsu.fit.shared.classmock.Plan;
+import ru.nsu.fit.shared.classmock.Subscription;
+import ru.nsu.fit.shared.classmock.User;
 import ru.yandex.qatools.allure.annotations.*;
 import ru.yandex.qatools.allure.model.SeverityLevel;
 
@@ -18,8 +21,8 @@ import java.util.UUID;
 /**
  * author: Alexander Fal (falalexandr007@gmail.com)
  */
-@Title("Customer Buy Plan Already Owned")
-public class CustomerBuyPlanAlreadyOwnedTest {
+@Title("Customer Add User To Subscription Test")
+public class CustomerAddUserToSubscriptionTest {
     private static final String PLAN_TEMPLATE = "{\n" +
             "\t\"name\":\"%s\",\n" +
             "    \"details\":\"%s\",\n" +
@@ -36,8 +39,18 @@ public class CustomerBuyPlanAlreadyOwnedTest {
             "    \"money\":\"%s\"\n" +
             "}";
 
+    private static final String USER_TEMPLATE = "{\n" +
+            "\t\"firstName\":\"%s\",\n" +
+            "    \"lastName\":\"%s\",\n" +
+            "    \"login\":\"%s\",\n" +
+            "    \"pass\":\"%s\",\n" +
+            "    \"userRole\":\"%s\"\n" +
+            "}";
+
     private Plan testPlan;
     private Customer testCustomer;
+    private User testUser;
+    private String subscriptionId;
 
     private Fairy testFairy;
     private RestService rest;
@@ -52,18 +65,19 @@ public class CustomerBuyPlanAlreadyOwnedTest {
     }
 
     @Test
-    @Title("Customer buy owned plan")
-    @Description("Buy plan as customer which already owns this plan via REST API")
-    @Severity(SeverityLevel.NORMAL)
-    @Features("Plan subscription")
-    @Stories("Buy plan")
+    @Title("Customer subscribe user")
+    @Description("Add user to subscription as customer via REST API")
+    @Severity(SeverityLevel.CRITICAL)
+    @Features("User management")
+    @Stories("Subscribe user")
     public void test() {
         authorize("admin", "setup");
         createPlan();
         createCustomer();
         authorize(testCustomer.data.login, testCustomer.data.pass);
         buyPlan();
-        String response = buyPlan();
+        createUser();
+        String response = addUserToSubscription();
         check(response);
     }
 
@@ -80,7 +94,7 @@ public class CustomerBuyPlanAlreadyOwnedTest {
                         testFairy.textProducer().sentence(),
                         testFairy.baseProducer().randomBetween(10, 100),
                         testFairy.baseProducer().randomBetween(100, 500),
-                        testFairy.baseProducer().randomBetween(1000, 5000)),
+                        testFairy.baseProducer().randomInt(1000)),
                 UUID.randomUUID());
 
         Response response = rest.createPlan(
@@ -106,7 +120,7 @@ public class CustomerBuyPlanAlreadyOwnedTest {
                         testFairy.person().lastName(),
                         testFairy.person().email(),
                         "123StrPass",
-                        testFairy.baseProducer().randomBetween(6000, 10000)),
+                        10000),
                 UUID.randomUUID());
 
         Response response = rest.createCustomer(
@@ -124,9 +138,44 @@ public class CustomerBuyPlanAlreadyOwnedTest {
         AllureUtils.saveTextLog("Response", responseText);
     }
 
+    @Step("Add user")
+    private void createUser() {
+        testUser = new User(
+                new User.UserData(
+                        testFairy.person().firstName(),
+                        testFairy.person().lastName(),
+                        testFairy.person().email(),
+                        "123StrPass",
+                        User.UserData.UserRole.USER),
+                UUID.randomUUID(),
+                testCustomer.id);
+
+        Response response = rest.createUser(
+                String.format(
+                        USER_TEMPLATE,
+                        testUser.data.firstName,
+                        testUser.data.lastName,
+                        testUser.data.login,
+                        testUser.data.pass,
+                        testUser.data.userRole));
+
+        String id = response.readEntity(String.class);
+        testUser.id = UUID.fromString(id);
+
+        AllureUtils.saveTextLog("Response:", id);
+    }
+
     @Step("Buy plan")
-    private String buyPlan() {
+    private void buyPlan() {
         Response response = rest.buyPlan(testPlan.id.toString());
+        subscriptionId = response.readEntity(String.class);
+
+        AllureUtils.saveTextLog("Response", subscriptionId);
+    }
+
+    @Step("Buy plan")
+    private String addUserToSubscription() {
+        Response response = rest.subscribeUser(testUser.id.toString(), subscriptionId);
         String responseText = response.readEntity(String.class);
 
         AllureUtils.saveTextLog("Response", responseText);
@@ -135,6 +184,7 @@ public class CustomerBuyPlanAlreadyOwnedTest {
 
     @Step("Check response")
     public void check(String strResponse) {
-        Assert.assertEquals(strResponse, "Plan is already owned by this customer!");
+        Assert.assertEquals(strResponse,
+                "Succesfully assigned user " + testUser.id.toString() + " to subscription " + subscriptionId.toString());
     }
 }

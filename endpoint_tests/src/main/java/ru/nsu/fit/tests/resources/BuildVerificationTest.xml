@@ -16,11 +16,22 @@
             <class name="ru.nsu.fit.tests.CreatePlanTest" />
         </classes>
     </test>
-    <test name="Create subscription test">
+    <test name="Create subscription tests">
         <classes>
             <class name="ru.nsu.fit.tests.CustomerBuyPlanWithSufficientFundsTest" />
             <class name="ru.nsu.fit.tests.CustomerBuyPlanWithInsufficientFundsTest" />
             <class name="ru.nsu.fit.tests.CustomerBuyPlanAlreadyOwnedTest" />
+            <class name="ru.nsu.fit.tests.CustomerBuyExternalPlanWithSufficientFundsTest" />
+        </classes>
+    </test>
+    <test name="User management tests">
+        <classes>
+            <class name="ru.nsu.fit.tests.CustomerAddUserToSubscriptionTest" />
+        </classes>
+    </test>
+    <test name="Balance management tests">
+        <classes>
+            <class name="ru.nsu.fit.tests.CustomerTopUpBalanceTest" />
         </classes>
     </test>
 </suite>

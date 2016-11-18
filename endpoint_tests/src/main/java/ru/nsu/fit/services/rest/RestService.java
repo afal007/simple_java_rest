@@ -130,6 +130,14 @@ public class RestService {
 	    		.get();
 		return response;
 	}
+
+	public Response topUpBalance(String customerId, Integer amount){
+		Response response = webTarget.path("top_up_balance").path(customerId).path(amount.toString()).request()
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
+				.post(Entity.entity("", MediaType.APPLICATION_JSON));
+		return response;
+	}
 	
 	public Response subscribeUser(String userId, String subscriptionId){
 		Response response = webTarget.path("subscribe_user").path(userId).path(subscriptionId).request()

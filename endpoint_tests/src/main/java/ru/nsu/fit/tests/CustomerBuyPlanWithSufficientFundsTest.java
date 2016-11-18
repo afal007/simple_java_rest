@@ -54,7 +54,7 @@ public class CustomerBuyPlanWithSufficientFundsTest {
     }
 
     @Test
-    @Title("Customer buy plan")
+    @Title("Customer buy plan sufficient funds")
     @Description("Buy plan as customer with sufficient funds via REST API")
     @Severity(SeverityLevel.BLOCKER)
     @Features("Plan subscription")
@@ -77,7 +77,7 @@ public class CustomerBuyPlanWithSufficientFundsTest {
     private void createPlan() {
         testPlan = new Plan(
                 new Plan.PlanData(
-                        testFairy.company().name().replace(" ", ""),
+                        testFairy.company().name().replaceAll("[^A-Za-z0-9]", ""),
                         testFairy.textProducer().sentence(),
                         testFairy.baseProducer().randomBetween(10, 100),
                         testFairy.baseProducer().randomBetween(100, 500),
@@ -145,6 +145,6 @@ public class CustomerBuyPlanWithSufficientFundsTest {
                 testCustomer.id,
                 testPlan.id);
 
-        Assert.assertTrue(subscription.equals(toCheck) && subscription.data.equals(toCheck.data));
+        Assert.assertTrue(subscription.equals(toCheck));
     }
 }

@@ -54,9 +54,9 @@ public class CustomerBuyPlanWithInsufficientFundsTest {
     }
 
     @Test
-    @Title("Customer buy plan")
+    @Title("Customer buy plan insufficient funds")
     @Description("Buy plan as customer with insufficient funds via REST API")
-    @Severity(SeverityLevel.BLOCKER)
+    @Severity(SeverityLevel.CRITICAL)
     @Features("Plan subscription")
     @Stories("Buy plan")
     public void test() {
@@ -77,7 +77,7 @@ public class CustomerBuyPlanWithInsufficientFundsTest {
     private void createPlan() {
         testPlan = new Plan(
                 new Plan.PlanData(
-                        testFairy.company().name().replace(" ", ""),
+                        testFairy.company().name().replaceAll("[^A-Za-z0-9]", ""),
                         testFairy.textProducer().sentence(),
                         testFairy.baseProducer().randomBetween(10, 100),
                         testFairy.baseProducer().randomBetween(100, 500),

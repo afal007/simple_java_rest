@@ -9,7 +9,6 @@ import ru.nsu.fit.services.rest.RestService;
 import ru.nsu.fit.shared.AllureUtils;
 import ru.nsu.fit.shared.JsonMapper;
 import ru.nsu.fit.shared.classmock.Customer;
-import ru.nsu.fit.shared.classmock.User;
 import ru.yandex.qatools.allure.annotations.*;
 import ru.yandex.qatools.allure.model.SeverityLevel;
 
@@ -19,8 +18,8 @@ import java.util.UUID;
 /**
  * author: Alexander Fal (falalexandr007@gmail.com)
  */
-@Title("User Create User Test")
-public class UserCreateUserTest {
+@Title("Customer Top Up Balance Test")
+public class CustomerTopUpBalanceTest {
     private static final String CUSTOMER_TEMPLATE = "{\n" +
             "\t\"firstName\":\"%s\",\n" +
             "    \"lastName\":\"%s\",\n" +
@@ -29,16 +28,8 @@ public class UserCreateUserTest {
             "    \"money\":\"%s\"\n" +
             "}";
 
-    private static final String USER_TEMPLATE = "{\n" +
-            "\t\"firstName\":\"%s\",\n" +
-            "    \"lastName\":\"%s\",\n" +
-            "    \"login\":\"%s\",\n" +
-            "    \"pass\":\"%s\",\n" +
-            "    \"userRole\":\"%s\"\n" +
-            "}";
-
     private Customer testCustomer;
-    private User testUser;
+    private Integer amount;
 
     private Fairy testFairy;
     private RestService rest;
@@ -53,19 +44,17 @@ public class UserCreateUserTest {
     }
 
     @Test
-    @Title("User create user")
-    @Description("Create user as customer via REST API")
-    @Severity(SeverityLevel.NORMAL)
-    @Features("Authorization")
-    @Stories("User auth")
+    @Title("Customer top up balance")
+    @Description("Top up balance as customer via REST API")
+    @Severity(SeverityLevel.BLOCKER)
+    @Features("Balance management")
+    @Stories("Top up balance")
     public void test() {
         authorize("admin", "setup");
         createCustomer();
         authorize(testCustomer.data.login, testCustomer.data.pass);
-        createUser();
-        authorize(testUser.data.login, testUser.data.pass);
-        String response = createUser();
-        check(response);
+        topUpBalance();
+        check();
     }
 
     @Step("Auth")
@@ -81,7 +70,7 @@ public class UserCreateUserTest {
                         testFairy.person().lastName(),
                         testFairy.person().email(),
                         "123StrPass",
-                        10000),
+                        testFairy.baseProducer().randomBetween(100, 1000)),
                 UUID.randomUUID());
 
         Response response = rest.createCustomer(
@@ -93,45 +82,25 @@ public class UserCreateUserTest {
                         testCustomer.data.pass,
                         testCustomer.data.money));
 
-        String strResponse = response.readEntity(String.class);
-        testCustomer.id = UUID.fromString(strResponse);
+        String id = response.readEntity(String.class);
+        testCustomer.id = UUID.fromString(id);
 
-        AllureUtils.saveTextLog("Response:", strResponse);
+        AllureUtils.saveTextLog("Response:", id);
     }
 
-    @Step("Add user")
-    private String createUser() {
-        testUser = new User(
-                new User.UserData(
-                        testFairy.person().firstName(),
-                        testFairy.person().lastName(),
-                        testFairy.person().email(),
-                        "123StrPass",
-                        User.UserData.UserRole.USER),
-                UUID.randomUUID(),
-                testCustomer.id);
+    @Step("Top up balance")
+    private void topUpBalance() {
+        amount = 1000;//testFairy.baseProducer().randomBetween(100, 1000);
+        Response response = rest.topUpBalance(testCustomer.id.toString(), amount);
 
-        Response response = rest.createUser(
-                String.format(
-                        USER_TEMPLATE,
-                        testUser.data.firstName,
-                        testUser.data.lastName,
-                        testUser.data.login,
-                        testUser.data.pass,
-                        testUser.data.userRole));
-
-        String strResponse = response.readEntity(String.class);
-
-        if(!strResponse.equals("You cannot access this resource"))
-            testUser.id = UUID.fromString(strResponse);
-
-        AllureUtils.saveTextLog("Response:", strResponse);
-
-        return strResponse;
+        AllureUtils.saveTextLog("Response", response.readEntity(String.class));
     }
 
-    @Step("Check response")
-    public void check(String response) {
-        Assert.assertEquals(response, "You cannot access this resource");
+    @Step("Check user")
+    public void check() {
+        Response response = rest.getCustomerData(testCustomer.id.toString());
+        Customer customer = JsonMapper.fromJson(response.readEntity(String.class), Customer.class);
+
+        Assert.assertEquals(testCustomer.data.money + amount, customer.data.money);
     }
 }

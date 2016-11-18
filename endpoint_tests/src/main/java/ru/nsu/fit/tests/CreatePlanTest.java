@@ -64,7 +64,7 @@ public class CreatePlanTest {
     private void createPlan() {
         testPlan = new Plan(
                 new Plan.PlanData(
-                        testFairy.company().name().replace(" ", ""),
+                        testFairy.company().name().replaceAll("[^A-Za-z0-9]", ""),
                         testFairy.textProducer().sentence(),
                         testFairy.baseProducer().randomBetween(10, 100),
                         testFairy.baseProducer().randomBetween(100, 500),
