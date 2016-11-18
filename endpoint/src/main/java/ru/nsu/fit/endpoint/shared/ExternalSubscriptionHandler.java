@@ -14,9 +14,10 @@ public class ExternalSubscriptionHandler implements Runnable {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
+        } finally {
+            subscription.getData().setStatus(Subscription.SubscriptionData.Status.DONE);
+            DBService.updateSubscription(subscription);
         }
-        subscription.getData().setStatus(Subscription.SubscriptionData.Status.DONE);
-        DBService.updateSubscription(subscription);
     }
 
     public ExternalSubscriptionHandler(Subscription subscription) { this.subscription = subscription; }

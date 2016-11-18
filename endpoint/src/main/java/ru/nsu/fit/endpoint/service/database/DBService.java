@@ -134,7 +134,7 @@ public class DBService {
                     planId);
 
             if(isExternal)
-                new ExternalSubscriptionHandler(subscription).run();
+                new Thread(new ExternalSubscriptionHandler(subscription)).start();
 
             try {
                 Statement statement = connection.createStatement();
