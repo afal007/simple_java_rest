@@ -44,6 +44,14 @@ public class RestService {
     		.post(Entity.entity(customerJson, MediaType.APPLICATION_JSON));
 		return response;
 	}
+
+	public Response createUser(String userJson){
+		Response response = webTarget.path("create_user").request(MediaType.APPLICATION_JSON)
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
+				.post(Entity.entity(userJson, MediaType.APPLICATION_JSON));
+		return response;
+	}
 	
 	public Response getCustomerIdByLogin(String login){
 		Response response = webTarget
@@ -57,6 +65,15 @@ public class RestService {
 	public Response getCustomerData(String id) {
 		Response response = webTarget
 				.path("get_customer_data").path(id).request()
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
+				.get();
+		return response;
+	}
+
+	public Response getUserData(String id) {
+		Response response = webTarget
+				.path("get_user_data").path(id).request()
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
 				.get();

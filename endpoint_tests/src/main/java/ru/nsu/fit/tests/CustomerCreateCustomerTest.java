@@ -18,8 +18,8 @@ import java.util.UUID;
 /**
  * author: Alexander Fal (falalexandr007@gmail.com)
  */
-@Title("Admin Create Customer Test")
-public class AdminCreateCustomerTest {
+@Title("Customer Create Customer Test")
+public class CustomerCreateCustomerTest {
     private static final String CUSTOMER_TEMPLATE = "{\n" +
             "\t\"firstName\":\"%s\",\n" +
             "    \"lastName\":\"%s\",\n" +
@@ -44,51 +44,51 @@ public class AdminCreateCustomerTest {
 
     @Test
     @Title("Create customer")
-    @Description("Create customer as admin via REST API")
+    @Description("Create customer as customer via REST API")
     @Severity(SeverityLevel.BLOCKER)
     @Features("Authorization")
     public void test() {
-        authorize();
+        authorize("admin", "setup");
         createCustomer();
-        check();
+        authorize(testCustomer.data.login, testCustomer.data.pass);
+        String response = createCustomer();
+        check(response);
     }
 
     @Step("Auth")
-    private void authorize() {
-        rest.configAuth("admin", "setup");
+    private void authorize(String login, String password) {
+        rest.configAuth(login, password);
     }
 
     @Step("Add customer")
-    private void createCustomer() {
+    private String createCustomer() {
         testCustomer = new Customer(
                 new Customer.CustomerData(
-                    testFairy.person().firstName(),
-                    testFairy.person().lastName(),
-                    testFairy.person().email(),
-                    "123StrPass",
-                    10000),
+                        testFairy.person().firstName(),
+                        testFairy.person().lastName(),
+                        testFairy.person().email(),
+                        "123StrPass",
+                        10000),
                 UUID.randomUUID());
 
         Response response = rest.createCustomer(
                 String.format(
-                    CUSTOMER_TEMPLATE,
-                    testCustomer.data.firstName,
-                    testCustomer.data.lastName,
-                    testCustomer.data.login,
-                    testCustomer.data.pass,
-                    testCustomer.data.money));
+                        CUSTOMER_TEMPLATE,
+                        testCustomer.data.firstName,
+                        testCustomer.data.lastName,
+                        testCustomer.data.login,
+                        testCustomer.data.pass,
+                        testCustomer.data.money));
 
-        String responseText = response.readEntity(String.class);
-        testCustomer.id = UUID.fromString(responseText);
+        String strResponse = response.readEntity(String.class);
 
-        AllureUtils.saveTextLog("Response", responseText);
+        AllureUtils.saveTextLog("Response:", strResponse);
+
+        return strResponse;
     }
 
-    @Step("Check customer")
-    public void check() {
-        Response response = rest.getCustomerData(testCustomer.id.toString());
-        Customer customer = JsonMapper.fromJson(response.readEntity(String.class), Customer.class);
-
-        Assert.assertEquals(customer.data, testCustomer.data);
+    @Step("Check response")
+    public void check(String response) {
+        Assert.assertEquals(response, "You cannot access this resource");
     }
 }
