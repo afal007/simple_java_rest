@@ -246,7 +246,7 @@ public class DBService {
     public static void updateSubscription(Subscription subscription) {
         synchronized (generalMutex) {
             logger.info("Try to update subscription");
-
+            logger.info(subscription.getData().getStatus().toString());
             try {
                 Statement statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
                 ResultSet rs = statement.executeQuery(
@@ -258,6 +258,10 @@ public class DBService {
                     rs.updateString("customer_id", subscription.getCustomerId().toString());
                     rs.updateString("status", subscription.getData().getStatus().toString());
                     rs.updateInt("used_seats", subscription.getData().getUsedSeats());
+                    rs.updateRow();
+                }
+                else{
+                	logger.error("no subscription with id " + subscription.getId() + " was found");
                 }
             } catch (SQLException ex) {
                 logger.debug(ex.getMessage(), ex);
@@ -626,6 +630,7 @@ public class DBService {
     }
 
     private static void init() {
+    	org.apache.log4j.BasicConfigurator.configure();
         logger.debug("-------- MySQL JDBC Connection Testing ------------");
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");

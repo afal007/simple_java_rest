@@ -15,7 +15,9 @@ public class ExternalSubscriptionHandler implements Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
+        	System.out.println("updating subscription " + subscription.getId()+ " status");
             subscription.getData().setStatus(Subscription.SubscriptionData.Status.DONE);
+            System.out.print(subscription.getData());
             DBService.updateSubscription(subscription);
         }
     }
