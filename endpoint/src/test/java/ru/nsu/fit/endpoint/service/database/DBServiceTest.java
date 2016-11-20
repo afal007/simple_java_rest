@@ -67,39 +67,46 @@ public class DBServiceTest {
  @Test
  public void createCustomer() throws BadCustomerException{
 	 //add test customer to db and give it real id
+	 System.out.println("Simple test-method Six. Thread id is: " + Thread.currentThread().getId());
 	 testCustomer.setId(DBService.createCustomer(testCustomer.getData()));
+	 
  }
  
- @Test(expectedExceptions = RuntimeException.class)
+ @Test(expectedExceptions = RuntimeException.class, dependsOnMethods={"createCustomer"})
  public void createCustomerWithSameLogin() throws BadCustomerException{
 	 //just try to add test customer again
+	 System.out.println("Simple test-method Five. Thread id is: " + Thread.currentThread().getId());
 	 DBService.createCustomer(testCustomer.getData());
+	 
  }
  
- @Test
+ @Test(dependsOnMethods={"createCustomer"})
  public void createUser() throws BadUserException{
+	 System.out.println("Simple test-method Four. Thread id is: " + Thread.currentThread().getId());
 	 testUser.setId(DBService.createUser(testUser.getData(), testCustomer.getId()));
+	 
  }
  
- @Test(expectedExceptions = RuntimeException.class)
+ @Test(expectedExceptions = RuntimeException.class, dependsOnMethods={"createUser"})
  public void createUserWithSameLogin() throws BadUserException{
 	 //just try to add test user again
+	 System.out.println("Simple test-method Three. Thread id is: " + Thread.currentThread().getId());
 	 DBService.createUser(testUser.getData(), testCustomer.getId());
+	 
  }
  
  @Test(expectedExceptions = IllegalArgumentException.class)
  public void getUserIdNonExistent() {
+	 System.out.println("Simple test-method Two. Thread id is: " + Thread.currentThread().getId());
 	 DBService.getUserById((new UUID(0L, 0L)).toString());
+	 
  }
  
  @Test(expectedExceptions = IllegalArgumentException.class)
  public void getCustomerIdNonExistent() {
+	 System.out.println("Simple test-method One. Thread id is: " + Thread.currentThread().getId());
 	 DBService.getCustomerById((new UUID(0L, 0L)));
- }
- 
- @Test
- public void aSlowTest() {
-    System.out.println("Slow test");
+	 
  }
  
 }
