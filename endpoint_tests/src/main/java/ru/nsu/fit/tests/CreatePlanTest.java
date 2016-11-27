@@ -33,6 +33,7 @@ public class CreatePlanTest {
 
     private Fairy testFairy;
     private RestService rest;
+
     @BeforeClass
     private void beforeClass(){
         testFairy = Fairy.create();
