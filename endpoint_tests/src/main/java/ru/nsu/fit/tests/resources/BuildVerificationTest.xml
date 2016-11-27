@@ -1,4 +1,4 @@
-<suite name="BuildVerificationTest" parallel="classes" thread-count="4">
+<suite name="BuildVerificationTest">
     <test name="Create customer tests">
         <classes>
             <class name="ru.nsu.fit.tests.AdminCreateCustomerTest" />

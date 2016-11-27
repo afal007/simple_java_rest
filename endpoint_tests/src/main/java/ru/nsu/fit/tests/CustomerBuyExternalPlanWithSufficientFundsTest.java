@@ -145,6 +145,9 @@ public class CustomerBuyExternalPlanWithSufficientFundsTest {
                 testCustomer.id,
                 testPlan.id);
 
-        Assert.assertEquals(subscription, toCheck);
+        Assert.assertEquals(subscription.data.usedSeats, toCheck.data.usedSeats);
+        Assert.assertEquals(subscription.data.status, toCheck.data.status);
+        Assert.assertEquals(subscription.customerId, toCheck.customerId);
+        Assert.assertEquals(subscription.planId, toCheck.planId);
     }
 }

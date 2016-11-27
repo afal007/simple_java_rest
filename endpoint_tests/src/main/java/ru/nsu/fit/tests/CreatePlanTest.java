@@ -91,6 +91,10 @@ public class CreatePlanTest {
         Response response = rest.getPlanData(testPlan.id.toString());
         Plan plan = JsonMapper.fromJson(response.readEntity(String.class), Plan.class);
 
-        Assert.assertEquals(plan.data, testPlan.data);
+        Assert.assertEquals(plan.data.cost, testPlan.data.cost);
+        Assert.assertEquals(plan.data.name, testPlan.data.name);
+        Assert.assertEquals(plan.data.details, testPlan.data.details);
+        Assert.assertEquals(plan.data.maxSeats, testPlan.data.maxSeats);
+        Assert.assertEquals(plan.data.feePerUnit, testPlan.data.feePerUnit);
     }
 }

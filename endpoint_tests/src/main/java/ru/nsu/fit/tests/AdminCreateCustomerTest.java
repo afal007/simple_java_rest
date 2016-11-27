@@ -90,6 +90,10 @@ public class AdminCreateCustomerTest {
         Response response = rest.getCustomerData(testCustomer.id.toString());
         Customer customer = JsonMapper.fromJson(response.readEntity(String.class), Customer.class);
 
-        Assert.assertEquals(customer.data, testCustomer.data);
+        Assert.assertEquals(customer.data.firstName, testCustomer.data.firstName);
+        Assert.assertEquals(customer.data.lastName, testCustomer.data.lastName);
+        Assert.assertEquals(customer.data.login, testCustomer.data.login);
+        Assert.assertEquals(customer.data.pass, testCustomer.data.pass);
+        Assert.assertEquals(customer.data.money, testCustomer.data.money);
     }
 }

@@ -128,6 +128,10 @@ public class CustomerCreateUserTest {
         Response response = rest.getUserData(testUser.id.toString());
         User user = JsonMapper.fromJson(response.readEntity(String.class), User.class);
 
-        Assert.assertEquals(testUser.data, user.data);
+        Assert.assertEquals(user.data.firstName, testUser.data.firstName);
+        Assert.assertEquals(user.data.lastName, testUser.data.lastName);
+        Assert.assertEquals(user.data.login, testUser.data.login);
+        Assert.assertEquals(user.data.pass, testUser.data.pass);
+        Assert.assertEquals(user.data.userRole, testUser.data.userRole);
     }
 }

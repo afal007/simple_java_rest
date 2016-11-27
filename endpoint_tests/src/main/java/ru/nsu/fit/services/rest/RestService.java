@@ -13,14 +13,14 @@ import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
 public class RestService {
-	private ClientConfig clientConfig;
-    private String username;
-    private String password;
+	private static ClientConfig clientConfig;
+    private static String username;
+    private static String password;
 
-    private Client client;
-    private WebTarget webTarget;
+    private static Client client;
+    private static WebTarget webTarget;
     
-    public RestService(){
+    static {
     	clientConfig = new ClientConfig();
     	HttpAuthenticationFeature feature = HttpAuthenticationFeature.basicBuilder().build();
     	clientConfig.register(feature);
@@ -28,16 +28,13 @@ public class RestService {
     	client = ClientBuilder.newClient( clientConfig );
     	webTarget = client.target("http://localhost:8080/endpoint/rest");
     }
-    public RestService configAuth(String username, String password){
-    	this.username = username;
-    	this.password = password;
-    	//webTarget.request()
-    	//	.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
-    	//	.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password);
-    	return this;
+
+    public static void configAuth(String _username, String _password){
+    	username = _username;
+    	password = _password;
     }
 
-    public Response createCustomer(String customerJson){
+    public static Response createCustomer(String customerJson){
 		Response response = webTarget.path("create_customer").request(MediaType.APPLICATION_JSON)
     		.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
     		.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
@@ -45,7 +42,7 @@ public class RestService {
 		return response;
 	}
 
-	public Response createUser(String userJson){
+	public static Response createUser(String userJson){
 		Response response = webTarget.path("create_user").request(MediaType.APPLICATION_JSON)
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
@@ -53,7 +50,7 @@ public class RestService {
 		return response;
 	}
 	
-	public Response getCustomerIdByLogin(String login){
+	public static Response getCustomerIdByLogin(String login){
 		Response response = webTarget
 				.path("get_customer_id").path(login).request()
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
@@ -62,7 +59,7 @@ public class RestService {
 		return response;
 	}
 
-	public Response getCustomerData(String id) {
+	public static Response getCustomerData(String id) {
 		Response response = webTarget
 				.path("get_customer_data").path(id).request()
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
@@ -71,7 +68,7 @@ public class RestService {
 		return response;
 	}
 
-	public Response getUserData(String id) {
+	public static Response getUserData(String id) {
 		Response response = webTarget
 				.path("get_user_data").path(id).request()
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
@@ -80,7 +77,7 @@ public class RestService {
 		return response;
 	}
 
-	public Response deleteCustomer(String id){
+	public static Response deleteCustomer(String id){
 		Response response = webTarget
 				.path("delete_customer").path(id).request()
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
@@ -89,7 +86,7 @@ public class RestService {
 		return response;
 	}
 	
-	public Response createPlan(String planJson){
+	public static Response createPlan(String planJson){
 		Response response = webTarget.path("create_plan").request(MediaType.APPLICATION_JSON)
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
 	    		.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
@@ -97,7 +94,7 @@ public class RestService {
 		return response;
 	}
 	
-	public Response deletePlan(String id){
+	public static Response deletePlan(String id){
 		Response response = webTarget.path("delete_plan").path(id).request()
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
 	    		.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
@@ -105,7 +102,7 @@ public class RestService {
 		return response;
 	}
 
-	public Response getPlanData(String id) {
+	public static Response getPlanData(String id) {
 		Response response = webTarget
 				.path("get_plan_data").path(id).request()
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
@@ -114,7 +111,7 @@ public class RestService {
 		return response;
 	}
 
-	public Response getSubscriptionData(String id) {
+	public static Response getSubscriptionData(String id) {
 		Response response = webTarget
 				.path("get_subscription_data").path(id).request()
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
@@ -123,7 +120,7 @@ public class RestService {
 		return response;
 	}
 
-	public Response buyPlan(String id){
+	public static Response buyPlan(String id){
 		Response response = webTarget.path("buy_plan").path(id).request()
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
 	    		.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
@@ -131,7 +128,7 @@ public class RestService {
 		return response;
 	}
 
-	public Response topUpBalance(String customerId, Integer amount){
+	public static Response topUpBalance(String customerId, Integer amount){
 		Response response = webTarget.path("top_up_balance").path(customerId).path(amount.toString()).request()
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
@@ -139,7 +136,7 @@ public class RestService {
 		return response;
 	}
 	
-	public Response subscribeUser(String userId, String subscriptionId){
+	public static Response subscribeUser(String userId, String subscriptionId){
 		Response response = webTarget.path("subscribe_user").path(userId).path(subscriptionId).request()
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
 	    		.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
@@ -147,7 +144,7 @@ public class RestService {
 		return response;
 	}
 	
-	public Response unsubscribeUser(String userId, String subscriptionId){
+	public static Response unsubscribeUser(String userId, String subscriptionId){
 		Response response = webTarget.path("unsubscribe_user").path(userId).path(subscriptionId).request()
 				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
 	    		.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)

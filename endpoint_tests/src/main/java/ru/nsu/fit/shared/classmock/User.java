@@ -2,7 +2,6 @@ package ru.nsu.fit.shared.classmock;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import ru.nsu.fit.tests.BuildVerificationTest;
 
 import java.util.UUID;
 
