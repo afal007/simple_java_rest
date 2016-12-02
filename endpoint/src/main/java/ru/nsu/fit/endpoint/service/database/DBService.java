@@ -1,6 +1,10 @@
 package ru.nsu.fit.endpoint.service.database;
 
+
 import org.apache.commons.lang.ArrayUtils;
+
+import jersey.repackaged.com.google.common.collect.Lists;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +22,9 @@ import ru.nsu.fit.endpoint.shared.ExternalSubscriptionHandler;
 
 import java.sql.*;
 import java.util.ArrayList;
+
+import java.util.List;
+
 import java.util.UUID;
 
 /**
@@ -28,7 +35,8 @@ public class DBService {
     // Constants
     private static final String INSERT_CUSTOMER = "INSERT INTO CUSTOMER(id, first_name, last_name, login, pass, money) values ('%s', '%s', '%s', '%s', '%s', %s)";
 
-    private static final String SELECT_CUSTOMER = "SELECT * FROM customer WHERE id='%s'";
+    private static final String SELECT_CUSTOMER = "SELECT * FROM CUSTOMER WHERE id='%s'";
+    private static final String SELECT_CUSTOMERS = "SELECT * FROM CUSTOMER";
     private static final String SELECT_CUSTOMER_ID = "SELECT id FROM CUSTOMER WHERE login='%s'";
     private static final String SELECT_CUSTOMER_BY_ID = "SELECT * FROM CUSTOMER WHERE id='%s'";
     private static final String SELECT_CUSTOMER_BY_LOGIN = "SELECT * FROM CUSTOMER WHERE login='%s'";
@@ -64,6 +72,7 @@ public class DBService {
     private static final String INSERT_USER_ASSIGNMENT = "INSERT INTO USER_ASSIGNMENT(user_id, subscription_id) values ('%s', '%s')";
     private static final String SELECT_USER_ASSIGNMENT_SUBSCRIPTION = "SELECT * FROM USER_ASSIGNMENT WHERE user_id='%s' AND subscription_id='%s'";
     private static final String DELETE_USER_ASSIGNMENT = "DELETE FROM USER_ASSIGNMENT WHERE user_id='%s' AND subscription_id='%s'";
+
 
     private static final Logger logger = LoggerFactory.getLogger("DB_LOG");
     private static final Object generalMutex = new Object();
@@ -176,6 +185,30 @@ public class DBService {
                 throw new RuntimeException(ex);
             }
             return plan.getId();
+        }
+    }
+
+    public static List<Customer.CustomerData> getCustomers() throws BadCustomerException {
+        synchronized (generalMutex) {
+            logger.info("Get customers");
+
+            try {
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(SELECT_CUSTOMERS);
+                List<Customer.CustomerData> result = Lists.newArrayList();
+                while (rs.next()) {
+                    result.add(new Customer.CustomerData(
+                            rs.getString(2),
+                            rs.getString(3),
+                            rs.getString(4),
+                            rs.getString(5),
+                            rs.getInt(6)));
+                }
+                return result;
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
         }
     }
 
@@ -395,10 +428,7 @@ public class DBService {
     					String.format(
     							"SELECT id FROM SUBSCRIPTION WHERE customer_id='%s' AND plan_id='%s'",
     							customerId.toString(), planId.toString()));
-    			if(rs.next())
-    				return true;
-				else
-					return false;
+                return rs.next();
     		}catch(SQLException ex){
     			throw new RuntimeException(ex);
     		}
@@ -520,7 +550,7 @@ public class DBService {
         }
     }
     
-    public static void updateSubscriptionSeats(String subscriptionId, int amount){
+    private static void updateSubscriptionSeats(String subscriptionId, int amount){
     	
     	synchronized(generalMutex){
     		Subscription subscription = getSubscriptionById(UUID.fromString(subscriptionId));

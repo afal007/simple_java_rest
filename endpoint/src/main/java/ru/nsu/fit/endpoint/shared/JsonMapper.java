@@ -24,14 +24,18 @@ public class JsonMapper {
         }
     }
 
-    public static String toJson(Object pojo, boolean prettyPrint) throws IOException {
-        StringWriter sw = new StringWriter();
-        JsonGenerator jg = jf.createGenerator(sw);
-        if (prettyPrint) {
-            jg.useDefaultPrettyPrinter();
+    public static String toJson(Object pojo, boolean prettyPrint) {
+        try {
+            StringWriter sw = new StringWriter();
+            JsonGenerator jg = jf.createGenerator(sw);
+            if (prettyPrint) {
+                jg.useDefaultPrettyPrinter();
+            }
+            m.writeValue(jg, pojo);
+            return sw.toString();
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
-        m.writeValue(jg, pojo);
-        return sw.toString();
     }
 
     public static <T> List<T> fromJson(String response, TypeReference ref) throws IOException {

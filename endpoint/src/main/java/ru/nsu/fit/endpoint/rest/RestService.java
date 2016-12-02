@@ -17,22 +17,57 @@ import ru.nsu.fit.endpoint.shared.JsonMapper;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import javax.ws.rs.core.Response.Status;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+
+import java.util.List;
+
 import java.util.UUID;
 
 /**
  * @author Timur Zolotuhin (tzolotuhin@gmail.com)
  */
-@Path("/rest")
+@Path("")
 public class RestService {
+    @RolesAllowed(Roles.UNKNOWN)
+    @GET
+    @Path("/health_check")
+    public Response healthCheck() {
+        return Response.ok().entity("{\"status\": \"OK\"}").build();
+    }
 
-    @RolesAllowed("ADMIN")
+    @RolesAllowed({Roles.UNKNOWN , Roles.ADMIN})
+    @GET
+    @Path("/get_role")
+    public Response getRole(@Context ContainerRequestContext crc) {
+        return Response.ok().entity(String.format("{\"role\": \"%s\"}", crc.getProperty("ROLE"))).build();
+    }
+
+    @RolesAllowed(Roles.ADMIN)
+    @GET
+    @Path("/get_customers")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getCustomers() {
+        try {
+            List<Customer.CustomerData> result = DBService.getCustomers();
+            String resultData = JsonMapper.toJson(result, true);
+            return Response.ok().entity(resultData).build();
+        } catch (IllegalArgumentException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        } catch (BadCustomerException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        }
+    }
+
+    @RolesAllowed(Roles.ADMIN)
     @POST
     @Path("/create_customer")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -46,7 +81,7 @@ public class RestService {
         }
     }
 
-    @RolesAllowed("CUSTOMER")
+    @RolesAllowed(Roles.CUSTOMER)
     @POST
     @Path("/create_user")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -76,7 +111,7 @@ public class RestService {
         }
     }
 
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(Roles.ADMIN)
     @POST
     @Path("/create_plan")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -90,7 +125,7 @@ public class RestService {
         }
     }
 
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(Roles.ADMIN)
     @DELETE
     @Path("/delete_customer/{customer_login}")
     public Response deleteCustomer(@PathParam("customer_login") String customerLogin){
@@ -102,7 +137,7 @@ public class RestService {
     	}
     }
 
-    @RolesAllowed("ADMIN")
+    @RolesAllowed(Roles.ADMIN)
     @DELETE
     @Path("/delete_plan/{plan_id}")
     public Response deletePlan(@PathParam("plan_id") String planId){
@@ -114,7 +149,7 @@ public class RestService {
     	}
     }
 
-    @RolesAllowed({"ADMIN","CUSTOMER"})
+    @RolesAllowed({Roles.ADMIN,Roles.CUSTOMER})
     @DELETE
     @Path("/delete_user/{user_id}")
     public Response deleteUser(@PathParam("user_id") UUID userId){
@@ -126,7 +161,7 @@ public class RestService {
         }
     }
 
-    @RolesAllowed({"ADMIN", "CUSTOMER"})
+    @RolesAllowed({Roles.ADMIN, Roles.CUSTOMER})
     @GET
     @Path("/get_customer_id/{customer_login}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -140,13 +175,12 @@ public class RestService {
         }
     }
 
-    @RolesAllowed({"ADMIN","CUSTOMER"})
+    @RolesAllowed({Roles.ADMIN,Roles.CUSTOMER})
     @GET
     @Path("/get_customer_data/{customer_id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getCustomerData(@PathParam("customer_id") UUID customerId) {
         try {
-
             //TODO: Check if customer is allowed to fetch data for this id
             Customer customer = DBService.getCustomerById(customerId);
             String response = JsonMapper.toJson(customer, true);
@@ -154,20 +188,15 @@ public class RestService {
             return Response.status(200).entity(response).build();
         } catch (IllegalArgumentException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
-        } catch (JsonProcessingException ex) {
-            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
-        } catch (IOException ex) {
-            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         }
     }
 
-    @RolesAllowed({"ADMIN","CUSTOMER"})
+    @RolesAllowed({Roles.ADMIN,Roles.CUSTOMER})
     @GET
     @Path("/get_plan_data/{plan_id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPlanData(@PathParam("plan_id") UUID planId) {
         try {
-
             //TODO: Check if customer is allowed to fetch data for this id
             Plan plan = DBService.getPlanById(planId);
             String response = JsonMapper.toJson(plan, true);
@@ -175,20 +204,15 @@ public class RestService {
             return Response.status(200).entity(response).build();
         } catch (IllegalArgumentException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
-        } catch (JsonProcessingException ex) {
-            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
-        } catch (IOException ex) {
-            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         }
     }
 
-    @RolesAllowed({"ADMIN","CUSTOMER"})
+    @RolesAllowed({Roles.ADMIN,Roles.CUSTOMER})
     @GET
     @Path("/get_subscription_data/{subscription_id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getSubscriptionData(@PathParam("subscription_id") UUID subscriptionId) {
         try {
-
             //TODO: Check if customer is allowed to fetch data for this id
             Subscription subscription = DBService.getSubscriptionById(subscriptionId);
             String response = JsonMapper.toJson(subscription, true);
@@ -196,14 +220,10 @@ public class RestService {
             return Response.status(200).entity(response).build();
         } catch (IllegalArgumentException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
-        } catch (JsonProcessingException ex) {
-            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
-        } catch (IOException ex) {
-            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         }
     }
 
-    @RolesAllowed("CUSTOMER")
+    @RolesAllowed(Roles.CUSTOMER)
     @GET
     @Path("/get_plan_id/{plan_name}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -216,12 +236,10 @@ public class RestService {
             return Response.status(200).entity(response).build();
         } catch (IllegalArgumentException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
-        } catch (IOException ex) {
-            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         }
     }
 
-    @RolesAllowed({"USER", "CUSTOMER"})
+    @RolesAllowed({Roles.USER, Roles.CUSTOMER})
     @GET
     @Path("/get_user_id/{user_login}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -230,16 +248,14 @@ public class RestService {
             UUID id = DBService.getUserIdByLogin(userLogin);
 
             return Response.status(200).entity("{\"id\":\"" + id.toString() + "\"}").build();
-
         } catch (IllegalArgumentException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         }
     }
 
-    @RolesAllowed({"USER","CUSTOMER"})
+    @RolesAllowed({Roles.USER,Roles.CUSTOMER})
     @GET
     @Path("/get_user_data/{user_id}")
-    //@Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserData(@PathParam("user_id") String userId) {
         try {
@@ -247,17 +263,12 @@ public class RestService {
             String response = JsonMapper.toJson(user, true);
 
             return Response.status(200).entity(response).build();
-
         } catch (IllegalArgumentException ex) {
-            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
-        } catch (JsonProcessingException ex) {
-            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
-        } catch (IOException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         }
     }
 
-    @RolesAllowed("CUSTOMER")
+    @RolesAllowed(Roles.CUSTOMER)
     @POST
     @Path("/top_up_balance/{customer_id}/{amount}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -272,7 +283,7 @@ public class RestService {
         }
     }
 
-    @RolesAllowed("CUSTOMER")
+    @RolesAllowed(Roles.CUSTOMER)
     @GET
     @Path("/buy_plan/{plan_id}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -299,7 +310,7 @@ public class RestService {
         }
     }
 
-    @RolesAllowed("CUSTOMER")
+    @RolesAllowed(Roles.CUSTOMER)
     @GET
     @Path("/subscribe_user/{user_id}/{subscription_id}") //check customer's funds. if enough, subscribe user
     public Response subscribeUser(@HeaderParam("Authorization") String auth, @PathParam("user_id") String userId, @PathParam("subscription_id") String subscriptionId){
@@ -320,25 +331,25 @@ public class RestService {
             DBService.updateCustomerMoney(customerId, -plan.getData().getFeePerUnit());
     		DBService.subscribeUser(userId, subscriptionId);
 
-        	return Response.status(200).entity("Succesfully assigned user " + userId.toString() + " to subscription " + subscriptionId.toString()).build();
+        	return Response.status(200).entity("Succesfully assigned user " + userId + " to subscription " + subscriptionId).build();
     	}catch (IllegalArgumentException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + userId + " " + subscriptionId + ExceptionUtils.getFullStackTrace(ex)).build();
         }
     }
     
-    @RolesAllowed("CUSTOMER")
+    @RolesAllowed(Roles.CUSTOMER)
     @GET
     @Path("/unsubscribe_user/{user_id}/{subscription_id}")
     public Response unsubscribeUser(@PathParam("user_id") String userId, @PathParam("subscription_id") String subscriptionId){
     	try{
     		DBService.unsubscribeUser(userId, subscriptionId);
-        	return Response.status(200).entity("Succesfully freed user " + userId.toString() + " from subscription " + subscriptionId.toString()).build();
+        	return Response.status(200).entity("Succesfully freed user " + userId+ " from subscription " + subscriptionId).build();
     	}catch (IllegalArgumentException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         }
     }
 
-    @RolesAllowed("CUSTOMER")
+    @RolesAllowed(Roles.CUSTOMER)
     @GET
     @Path("/change_user_role/{user_id}/{role}")
     public Response changeUserRole(@HeaderParam("Authorization") String auth, @PathParam("user_id") String userId, @PathParam("role") String role){

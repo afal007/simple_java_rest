@@ -1,31 +1,32 @@
 package ru.nsu.fit.services.browser;
 
 import org.openqa.selenium.*;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import ru.nsu.fit.shared.ImageUtils;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Please read: https://github.com/SeleniumHQ/selenium/wiki/Grid2
+ *
  * @author Timur Zolotuhin (tzolotuhin@gmail.com)
  */
 public class Browser implements Closeable {
     private WebDriver webDriver;
 
     public Browser() {
-        // create profile
-        FirefoxProfile profile = new FirefoxProfile();
-
         // create web driver
         try {
-            webDriver = new FirefoxDriver(profile);
-
+            System.setProperty("webdriver.chrome.driver", "./lib/chromedriver.exe");
+            webDriver = new ChromeDriver();
             webDriver.manage().timeouts().pageLoadTimeout(60, TimeUnit.SECONDS);
         } catch (Exception ex) {
             throw new RuntimeException(ex);

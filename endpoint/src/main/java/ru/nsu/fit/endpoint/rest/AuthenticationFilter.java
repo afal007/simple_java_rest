@@ -12,13 +12,16 @@ import javax.annotation.security.DenyAll;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 
+import org.apache.commons.lang.StringUtils;
 import org.glassfish.jersey.internal.util.Base64;
+import ru.nsu.fit.endpoint.shared.Globals;
 
 import ru.nsu.fit.endpoint.service.database.DBService;
 
@@ -29,7 +32,7 @@ import ru.nsu.fit.endpoint.service.database.DBService;
  * @author Timur Zolotuhin (tzolotuhin@gmail.com)
  */
 @Provider
-public class AuthenticationFilter implements javax.ws.rs.container.ContainerRequestFilter {
+public class AuthenticationFilter implements ContainerRequestFilter {
 
     @Context
     private ResourceInfo resourceInfo;
@@ -58,6 +61,7 @@ public class AuthenticationFilter implements javax.ws.rs.container.ContainerRequ
             System.err.println(headers.toString());
             //Fetch authorization header
             final List<String> authorization = headers.get(AUTHORIZATION_PROPERTY);
+
             //If no authorization information present; block access
             if (authorization == null || authorization.isEmpty()) {
                 Response ACCESS_DENIED = Response.status(Response.Status.UNAUTHORIZED).entity("You cannot access this resource").build();
@@ -65,74 +69,77 @@ public class AuthenticationFilter implements javax.ws.rs.container.ContainerRequ
                 return;
             }
 
-            //Get encoded username and password
-            final String encodedUserPassword = authorization.get(0).replaceFirst(AUTHENTICATION_SCHEME + " ", "");
+            String username = null;
+            String password = null;
 
-            //Decode username and password
-            String usernameAndPassword = new String(Base64.decode(encodedUserPassword.getBytes()));
-            ;
+            if (authorization != null && authorization.size() == 1) {
+                //Get encoded username and password
+                final String encodedUserPassword = authorization.get(0).replaceFirst(AUTHENTICATION_SCHEME + " ", "");
 
-            //Split username and password tokens
-            final StringTokenizer tokenizer = new StringTokenizer(usernameAndPassword, ":");
-            final String username = tokenizer.nextToken();
-            final String password = tokenizer.nextToken();
+                //Decode username and password
+                String usernameAndPassword = new String(Base64.decode(encodedUserPassword.getBytes()));
+
+                //Split username and password tokens
+                final StringTokenizer tokenizer = new StringTokenizer(usernameAndPassword, ":");
+                username = tokenizer.nextToken();
+                password = tokenizer.nextToken();
+            }
 
             //Verifying Username and password
-            System.err.println(username);
-            System.err.println(password);
+            System.out.println("User: " + username);
+            System.out.println("Pass: " + password);
 
             //Verify user access
             if (method.isAnnotationPresent(RolesAllowed.class)) {
                 RolesAllowed rolesAnnotation = method.getAnnotation(RolesAllowed.class);
-                Set<String> rolesSet = new HashSet<String>(Arrays.asList(rolesAnnotation.value()));
+                Set<String> rolesSet = new HashSet<>(Arrays.asList(rolesAnnotation.value()));
 
                 //Is user valid?
-                if (!isUserAllowed(username, password, rolesSet)) {
+                if (!isUserAllowed(username, password, rolesSet, requestContext)) {
                     Response ACCESS_DENIED = Response.status(Response.Status.UNAUTHORIZED).entity("You cannot access this resource").build();
                     requestContext.abortWith(ACCESS_DENIED);
-                    return;
                 }
             }
         }
     }
 
-    private boolean isUserAllowed(final String username, final String password, final Set<String> rolesSet) {
-        boolean isAllowed = false;
-
+    private boolean isUserAllowed(final String username, final String password, final Set<String> rolesSet, ContainerRequestContext requestContext) {
         //Step 1. Fetch password from database and match with password in argument
         //If both match then get the defined role for user from database and continue; else return isAllowed [false]
         //Access the database and do this part yourself
         //String userRole = userMgr.getUserRole(username);
         //Base64(admin:setup) = YWRtaW46c2V0dXA=
-        String userRole = "";
-        System.err.println("USER TRYING TO LOGIN: " + username + " " + password);
-        if (username.equals("admin") && password.equals("setup")) 
+
+        String userRole = Roles.UNKNOWN;
+        System.out.println("USER TRYING TO LOGIN: " + username + " " + password);
+
+        if (StringUtils.equals(username, Globals.ADMIN_LOGIN) && StringUtils.equals(password, Globals.ADMIN_PASS)) {
+            System.out.println("Role is admin");
             userRole = "ADMIN";
-        else{ // this is bad
+        }
+        else { // this is bad
 	        UUID id;
 	        id = DBService.getCustomerIdByLogin(username);
 	        if (!id.equals(new UUID(0L, 0L))){
 	        	String customerPass = DBService.getCustomerById(id).getData().getPass();
-	        	System.err.println(id.toString());
-	        	if (password.equals(customerPass))
+	        	System.out.println(id.toString());
+	        	if (StringUtils.equals(password, customerPass))
 	        		userRole = "CUSTOMER";
 	        }
-	        else{
+	        else {
 	        	id = DBService.getUserIdByLogin(username);
 	        	if (!id.equals(new UUID(0L, 0L))){
 		        	String userPass = DBService.getUserById(id.toString()).getData().getPass();
-		        	System.err.println(id.toString());
-		        	if (password.equals(userPass))
+		        	System.out.println(id.toString());
+		        	if (StringUtils.equals(password, userPass))
 		        		userRole = "USER";
 		        }
 	        }
         }
-        System.err.println(userRole);
-            //Step 2. Verify user role
-            if (rolesSet.contains(userRole)) {
-                isAllowed = true;
-            }
-        
-        return isAllowed;
+
+        //Step 2. Verify user role
+        System.out.println(userRole);
+        requestContext.setProperty("ROLE", userRole);
+        return rolesSet.contains(userRole);
     }
 }
