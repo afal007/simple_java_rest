@@ -6,7 +6,7 @@ $(document).ready(function(){
         if(email =='' || password =='') {
             $('input[type="text"],input[type="password"]').css("border","2px solid red");
             $('input[type="text"],input[type="password"]').css("box-shadow","0 0 3px red");
-            alert("ASDF or password is empty");
+            alert("Email or password is empty");
         } else {
             $.get({
                 url: 'rest/get_role',

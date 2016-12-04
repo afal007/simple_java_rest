@@ -15,6 +15,7 @@ import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadCustomerException;
 import ru.nsu.fit.endpoint.shared.JsonMapper;
 
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -42,8 +43,8 @@ public class RestService {
     public Response healthCheck() {
         return Response.ok().entity("{\"status\": \"OK\"}").build();
     }
-    
-    @RolesAllowed({Roles.ADMIN, Roles.CUSTOMER, Roles.USER})
+
+    @RolesAllowed({Roles.ADMIN, Roles.CUSTOMER, Roles.USER, Roles.UNKNOWN})    //wtf 
     @GET
     @Path("/get_role")
     public Response getRole(@Context ContainerRequestContext crc) {

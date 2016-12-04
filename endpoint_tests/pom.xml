@@ -73,6 +73,9 @@
                     <argLine>
                         -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
                     </argLine>
+                    <configuration>
+                    	<outputDirectory>${build_project}/../../webapps/test_report</outputDirectory>
+                	</configuration>
                 </configuration>
                 <dependencies>
                     <dependency>
@@ -100,19 +103,20 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
-            
+
             <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-war-plugin</artifactId>
-            <version>3.0.0</version>
-            <configuration>
-                <outputDirectory>${build_project}\..\..\webapps</outputDirectory>
-            </configuration>
-        	</plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <outputDirectory>${build_project}/../../webapps/test_report</outputDirectory>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 
