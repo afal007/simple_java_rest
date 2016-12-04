@@ -1,8 +1,12 @@
-$(document).ready(function(){
+var searchParams = new URLSearchParams(window.location.search);
+if (searchParams.get("login") != 'admin' || searchParams.get("pass") != 'setup'){
+	$.redirect('/endpoint/login.html');
+}
+$(document).ready(function(){	
     $("#add_new_customer").click(function() {
-        $.redirect('/endpoint/add_customer.html', {'login': 'admin', 'pass': 'setup', 'role': 'ADMIN'}, 'GET');
+        $.redirect('/endpoint/add_customer.html', {'login': 'admin', 'pass': 'setup'}, 'GET');
     });
-
+	
     $.get({
         url: 'rest/get_customers',
         headers: {
@@ -14,7 +18,7 @@ $(document).ready(function(){
         var dataSet = []
         for(var i = 0; i < json.length; i++) {
             var obj = json[i];
-            dataSet.push([obj.firstName, obj.lastName, obj.login, obj.pass, '100'])
+            dataSet.push([obj.firstName, obj.lastName, obj.login, obj.pass, obj.money])
         }
 
         //$("#customer_list_id").html(data);
@@ -24,7 +28,7 @@ $(document).ready(function(){
                 columns: [
                     { title: "Fist Name" },
                     { title: "Last Name" },
-                    { title: "Email" },
+                    { title: "e-mail" },
                     { title: "Pass" },
                     { title: "Money" }
                 ]
