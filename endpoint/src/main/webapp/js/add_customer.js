@@ -26,7 +26,7 @@ $(document).ready(function(){
                                              "money":"100"
                                          })
                 }).done(function(data) {
-                     $.redirect('/endpoint/customers.html', {'login': 'admin', 'pass': 'setup', 'role': 'ADMIN'}, 'GET');
+                     $.redirect('/endpoint/customers.html', {}, 'GET');
                 });
             }
         }

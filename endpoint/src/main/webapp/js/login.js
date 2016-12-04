@@ -1,7 +1,10 @@
-$(document).ready(function(){
+var appPrefix = btoa('endpoint'); //very secret
+$(document).ready(function(){	
     $("#login").click(function(){
         var email = $("#email").val();
         var password = $("#password").val();
+        localStorage.setItem(appPrefix + 'login', email)
+		localStorage.setItem(appPrefix + 'pass', password)
         // Checking for blank fields.
         if(email =='' || password =='') {
             $('input[type="text"],input[type="password"]').css("border","2px solid red");
@@ -18,9 +21,9 @@ $(document).ready(function(){
                     var dataObj = $.parseJSON(data);
                     var role = dataObj['role']
                     if(role =='ADMIN') {
-                        $.redirect('/endpoint/customers.html', {'login': email, 'pass': password, 'role': 'ADMIN'}, 'GET');
+                        $.redirect('/endpoint/customers.html');
                     } else if (role == 'CUSTOMER'){
-                    	$.redirect('/endpoint/customer_dashboard.html', {'login': email, 'pass': password}, 'GET');
+                    	$.redirect('/endpoint/customer_dashboard.html');
                     } else if(role =='UNKNOWN') {
                         $('input[type="text"],input[type="password"]').css({"border":"2px solid red","box-shadow":"0 0 3px red"});
                         alert("Email or password is incorrect");

@@ -1,10 +1,16 @@
-var searchParams = new URLSearchParams(window.location.search);
-if (searchParams.get("login") != 'admin' || searchParams.get("pass") != 'setup'){
+//var searchParams = new URLSearchParams(window.location.search);
+//if (searchParams.get("login") != 'admin' || searchParams.get("pass") != 'setup'){
+//	$.redirect('/endpoint/login.html');
+//}
+var appPrefix = btoa('endpoint');
+var login = localStorage.getItem(appPrefix + 'login')
+var pass = localStorage.getItem(appPrefix + 'pass')
+if(login != 'admin' || pass != 'setup'){
 	$.redirect('/endpoint/login.html');
 }
 $(document).ready(function(){	
     $("#add_new_customer").click(function() {
-        $.redirect('/endpoint/add_customer.html', {'login': 'admin', 'pass': 'setup'}, 'GET');
+        $.redirect('/endpoint/add_customer.html');
     });
 	
     $.get({
@@ -28,7 +34,7 @@ $(document).ready(function(){
                 columns: [
                     { title: "Fist Name" },
                     { title: "Last Name" },
-                    { title: "e-mail" },
+                    { title: "Email" },
                     { title: "Pass" },
                     { title: "Money" }
                 ]
