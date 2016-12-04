@@ -37,14 +37,13 @@ import java.util.UUID;
  */
 @Path("")
 public class RestService {
-    @RolesAllowed(Roles.UNKNOWN)
     @GET
     @Path("/health_check")
     public Response healthCheck() {
         return Response.ok().entity("{\"status\": \"OK\"}").build();
     }
-
-    @RolesAllowed({Roles.UNKNOWN , Roles.ADMIN})
+    
+    @RolesAllowed({Roles.ADMIN, Roles.CUSTOMER, Roles.USER})
     @GET
     @Path("/get_role")
     public Response getRole(@Context ContainerRequestContext crc) {

@@ -16,9 +16,12 @@ $(document).ready(function(){
             })
                 .done(function(data) {
                     var dataObj = $.parseJSON(data);
-                    if(dataObj['role']=='ADMIN') {
+                    var role = dataObj['role']
+                    if(role =='ADMIN') {
                         $.redirect('/endpoint/customers.html', {'login': email, 'pass': password, 'role': 'ADMIN'}, 'GET');
-                    } else if(dataObj['role']=='UNKNOWN') {
+                    } else if (role == 'CUSTOMER'){
+                    	$.redirect('/endpoint/customer_dashboard.html', {'login': email, 'pass': password}, 'GET');
+                    } else if(role =='UNKNOWN') {
                         $('input[type="text"],input[type="password"]').css({"border":"2px solid red","box-shadow":"0 0 3px red"});
                         alert("Email or password is incorrect");
                     }
