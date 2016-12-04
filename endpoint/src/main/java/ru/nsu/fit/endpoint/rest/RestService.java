@@ -92,9 +92,6 @@ public class RestService {
             String creatorCredentials = new String(Base64.decode(creatorCredentialsBase64.getBytes()));
             StringTokenizer tokenizer = new StringTokenizer(creatorCredentials, ":");
             String username = tokenizer.nextToken();
-            System.err.println("Trying to create user");
-            System.err.println(creatorCredentialsBase64);
-            System.err.println(username);
             UUID customerId;
             if (!username.equals("admin")){
                 customerId = DBService.getCustomerIdByLogin(username);
