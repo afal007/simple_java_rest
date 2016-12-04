@@ -29,8 +29,6 @@ public class AcceptanceTest {
     @Severity(SeverityLevel.BLOCKER)
     @Features("Customer feature")
     public void createCustomer() {
-        Browser browser = BrowserService.openNewBrowser();
-
         // login to admin cp
         browser.openPage("http://localhost:8080/endpoint");
         browser.waitForElement(By.id("email"));
