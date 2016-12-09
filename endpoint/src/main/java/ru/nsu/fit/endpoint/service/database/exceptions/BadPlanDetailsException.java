@@ -1,7 +1,7 @@
 package ru.nsu.fit.endpoint.service.database.exceptions;
 
 /**
- * Created by Alex on 29.09.2016.
+ * author: Alexander Fal (falalexandr007@gmail.com)
  */
 public class BadPlanDetailsException extends BadPlanException {
     public static final String LONG_DETAILS_MESSAGE = "Details shouldn't be longer than 1024 symbols.";

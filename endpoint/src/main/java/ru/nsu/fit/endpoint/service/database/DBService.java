@@ -197,6 +197,9 @@ public class DBService {
                 ResultSet rs = statement.executeQuery(SELECT_CUSTOMERS);
                 List<Customer.CustomerData> result = Lists.newArrayList();
                 while (rs.next()) {
+                    if(rs.getString(2).equals("admin"))
+                        continue;
+
                     result.add(new Customer.CustomerData(
                             rs.getString(2),
                             rs.getString(3),
@@ -213,12 +216,24 @@ public class DBService {
     }
 
     public static UUID getCustomerIdByLogin(String customerLogin) {
-    	try{
-    		Customer customer = getCustomerBy(QueryIndex.LOGIN, customerLogin);
-    		return customer.getId();
-    	}catch (IllegalArgumentException ex){ // thrown when user not found
-    		return new UUID(0L, 0L);
-    	}
+        synchronized (generalMutex) {
+            logger.info("Get customers");
+
+            try {
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(
+                        String.format(
+                                SELECT_CUSTOMER_ID,
+                                customerLogin));
+                if(rs.next())
+                    return UUID.fromString(rs.getString("id"));
+                else
+                    return new UUID(0L, 0L);
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
     }
 
     public static Customer getCustomerById(UUID customerId) {

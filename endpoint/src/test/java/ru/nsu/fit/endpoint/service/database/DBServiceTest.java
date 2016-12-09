@@ -1,10 +1,7 @@
 package ru.nsu.fit.endpoint.service.database;
 
-import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.UUID;
 
-import org.testng.Assert;
 import org.testng.annotations.*;
 
 import io.codearte.jfairy.Fairy;
@@ -15,7 +12,6 @@ import ru.nsu.fit.endpoint.service.database.data.Subscription;
 import ru.nsu.fit.endpoint.service.database.data.User;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadCustomerException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
-import ru.nsu.fit.endpoint.service.database.exceptions.BadSubscriptionException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadUserException;
 
 public class DBServiceTest {

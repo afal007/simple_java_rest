@@ -1,7 +1,7 @@
 package ru.nsu.fit.endpoint.service.database.exceptions;
 
 /**
- * Created by Alex on 29.09.2016.
+ * author: Alexander Fal (falalexandr007@gmail.com)
  */
 public class BadCustomerPasswordException extends BadCustomerException {
     public static final String EMPTY_PASSWORD_MESSAGE = "Password mustn't be empty.";

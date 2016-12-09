@@ -12,6 +12,7 @@ import java.util.List;
 /**
  * @author Timur Zolotuhin (tzolotuhin@gmail.com)
  */
+@SuppressWarnings("SameParameterValue")
 public class JsonMapper {
     private static final ObjectMapper m = new ObjectMapper();
     private static final JsonFactory jf = new JsonFactory();

@@ -1,7 +1,7 @@
 package ru.nsu.fit.endpoint.service.database.exceptions;
 
 /**
- * Created by Alex on 29.09.2016.
+ * author: Alexander Fal (falalexandr007@gmail.com)
  */
 public class BadPlanNameException extends BadPlanException {
     public static final String WRONG_SYMBOLS_MESSAGE = "Name shouldn't contain special symbols.";

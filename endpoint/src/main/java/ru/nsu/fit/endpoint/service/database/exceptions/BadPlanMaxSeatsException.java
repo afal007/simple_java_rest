@@ -1,7 +1,7 @@
 package ru.nsu.fit.endpoint.service.database.exceptions;
 
 /**
- * Created by Alex on 29.09.2016.
+ * author: Alexander Fal (falalexandr007@gmail.com)
  */
 public class BadPlanMaxSeatsException extends BadPlanException {
     public static final String BIG_MAXSEATS_MESSAGE = "Max seats shouldn't be bigger than 9999999.";

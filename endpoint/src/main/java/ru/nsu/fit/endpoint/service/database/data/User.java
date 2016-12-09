@@ -102,7 +102,7 @@ public class User extends Entity<User.UserData> {
                     '}';
         }
 
-        public static enum UserRole {
+        public enum UserRole {
             COMPANY_ADMINISTRATOR("Company administrator"),
             TECHNICAL_ADMINISTRATOR("Technical administrator"),
             BILLING_ADMINISTRATOR("Billing administrator"),
