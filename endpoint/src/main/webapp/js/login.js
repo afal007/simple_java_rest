@@ -9,9 +9,13 @@ $(document).ready(function(){
 		localStorage.setItem(appPrefix + 'pass', password);
         // Checking for blank fields.
         if(email == '' || password == '') {
-            $('input[type="email"],input[type="password"]').css({"border":"2px solid red","box-shadow":"0 0 3px red"});
-            alert("Email or password is empty");
+            if ($("#email").parent().next(".validation").length == 0) {
+                $("#email").parent().after("<div class='validation' style='color:red;margin-bottom: 20px;'>Empty password or e-mail.</div>");
+                $('input[type="email"],input[type="password"]').css({"border":"2px solid red","box-shadow":"0 0 3px red"});
+            }
         } else {
+            $("#email").parent().next(".validation").remove();
+
             $.get({
                 url: 'rest/get_customer_id/' + email,
                 headers: {
