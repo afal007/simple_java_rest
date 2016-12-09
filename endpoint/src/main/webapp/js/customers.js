@@ -8,11 +8,12 @@ var pass = localStorage.getItem(appPrefix + 'pass')
 if(login != 'admin' || pass != 'setup'){
 	$.redirect('/endpoint/login.html');
 }
-$(document).ready(function(){	
+
+$(document).ready(function(){
     $("#add_new_customer").click(function() {
         $.redirect('/endpoint/add_customer.html');
     });
-	
+
     $.get({
         url: 'rest/get_customers',
         headers: {
@@ -21,7 +22,7 @@ $(document).ready(function(){
     }).done(function(data) {
         var json = $.parseJSON(data);
 
-        var dataSet = []
+        var dataSet = [];
         for(var i = 0; i < json.length; i++) {
             var obj = json[i];
             dataSet.push([obj.firstName, obj.lastName, obj.login, obj.pass, obj.money])
