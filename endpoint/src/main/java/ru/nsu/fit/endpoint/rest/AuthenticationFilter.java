@@ -48,7 +48,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext requestContext) {
         Method method = resourceInfo.getResourceMethod();
         //Access allowed for all
-        if (!method.isAnnotationPresent(PermitAll.class)) {
+       // if (!method.isAnnotationPresent(PermitAll.class)) {
             //Access denied for all
             if (method.isAnnotationPresent(DenyAll.class)) {
                 Response ACCESS_FORBIDDEN = Response.status(Response.Status.FORBIDDEN).entity("Access blocked for all users !!").build();
@@ -100,7 +100,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
                     requestContext.abortWith(ACCESS_DENIED);
                 }
             }
-        }
+       // }
     }
 
     private boolean isUserAllowed(final String username, final String password, final Set<String> rolesSet, ContainerRequestContext requestContext) {
@@ -109,7 +109,6 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         //Access the database and do this part yourself
         //String userRole = userMgr.getUserRole(username);
         //Base64(admin:setup) = YWRtaW46c2V0dXA=
-
         String userRole = Roles.UNKNOWN;
         System.out.println("USER TRYING TO LOGIN: " + username + " " + password);
 
@@ -140,6 +139,6 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         //Step 2. Verify user role
         System.out.println(userRole);
         requestContext.setProperty("ROLE", userRole);
-        return rolesSet.contains(userRole);
+        return rolesSet.contains(Roles.ANY) || rolesSet.contains(userRole);
     }
 }

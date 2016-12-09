@@ -1,6 +1,5 @@
 package ru.nsu.fit.endpoint.rest;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.glassfish.jersey.internal.util.Base64;
 
@@ -25,7 +24,6 @@ import javax.ws.rs.core.Response;
 
 import javax.ws.rs.core.Response.Status;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
@@ -44,7 +42,8 @@ public class RestService {
         return Response.ok().entity("{\"status\": \"OK\"}").build();
     }
 
-    @RolesAllowed({Roles.ADMIN, Roles.CUSTOMER, Roles.USER, Roles.UNKNOWN})    //wtf 
+    //@RolesAllowed({Roles.ADMIN, Roles.CUSTOMER, Roles.USER, Roles.UNKNOWN, })    //wtf
+    @RolesAllowed(Roles.ANY)
     @GET
     @Path("/get_role")
     public Response getRole(@Context ContainerRequestContext crc) {
@@ -351,11 +350,9 @@ public class RestService {
     @Path("/change_user_role/{user_id}/{role}")
     public Response changeUserRole(@HeaderParam("Authorization") String auth, @PathParam("user_id") String userId, @PathParam("role") String role){
         try{
-            String login = getLogin(auth);
-
             DBService.changeUserRole(userId, role);
 
-            return Response.status(200).entity("Succesfully assigned user " + userId.toString() + " new role " + role).build();
+            return Response.status(200).entity("Succesfully assigned user " + userId + " new role " + role).build();
         }catch (IllegalArgumentException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         }
