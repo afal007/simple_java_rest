@@ -49,10 +49,11 @@ public class DBService {
 
     private static final String DELETE_USER = "DELETE FROM USER WHERE id='%s'";
 
-
+    private static final String SELECT_USERS = "SELECT * FROM USER";
     private static final String SELECT_USER_ID = "SELECT id FROM USER WHERE login='%s'";
     private static final String SELECT_USER_BY_ID = "SELECT * FROM USER WHERE id='%s'";
     private static final String SELECT_USER_BY_LOGIN = "SELECT * FROM USER WHERE login='%s'";
+    private static final String SELECT_USERS_BY_CUSTOMER_ID = "SELECT * FROM USER WHERE customer_id='%s'";
     private static final String SELECT_USER_SUBSCRIPTIONS_BY_ID = "SELECT subscription_id FROM USER_ASSIGNMENT WHERE user_id='%s'";
     private static final String SELECT_USER_COUNT_SUBSCRIPTIONS = "SELECT COUNT(subscription_id) FROM USER_ASSIGNMENT WHERE user_id='%s'";
 
@@ -463,6 +464,33 @@ public class DBService {
                 if(rs.next()) {
                     rs.updateString("role", role);
                 }
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
+    public static List<User.UserData> getUsers(UUID customerId) throws BadUserException {
+        synchronized (generalMutex) {
+            logger.info("Get users");
+
+            try {
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(
+                        String.format(
+                                SELECT_USERS_BY_CUSTOMER_ID,
+                                customerId.toString()));
+                List<User.UserData> result = Lists.newArrayList();
+                while (rs.next()) {
+                    result.add(new User.UserData(
+                            rs.getString(3),
+                            rs.getString(4),
+                            rs.getString(5),
+                            rs.getString(6),
+                            UserRole.fromString(rs.getString(7))));
+                }
+                return result;
             } catch (SQLException ex) {
                 logger.debug(ex.getMessage(), ex);
                 throw new RuntimeException(ex);

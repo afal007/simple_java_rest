@@ -45,7 +45,7 @@ $(document).ready(function(){
                                 if(role == 'ADMIN') {
                                     $.redirect('/endpoint/customers.html',{'login': email, 'pass': password, 'role': 'ADMIN'}, 'GET');
                                 } else if (role == 'CUSTOMER'){
-                                    $.redirect('/endpoint/customer_dashboard.html');
+                                    $.redirect('/endpoint/customer_dashboard.html', {'login':email, 'pass':password, 'role': 'CUSTOMER'}, 'GET');
                                 } else if(role =='UNKNOWN') {
                                     if ($("#password").next(".validation").length == 0)
                                     {

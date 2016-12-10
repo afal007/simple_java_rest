@@ -1,0 +1,42 @@
+<html>
+<head>
+    <title>Add Customer</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="css/style.css"/>
+    <script src="js/jquery.js"></script>
+    <script src="js/jquery.redirect.js"></script>
+    <script type="text/javascript" src="js/add_user.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="main">
+        <form class="form" method="post" action="#">
+            <h2>Add new user</h2>
+
+            <label for="first_name_id">First Name :</label>
+            <input type="text" name="first_name" id="first_name_id">
+
+            <label for="last_name_id">Last Name :</label>
+            <input type="text" name="last_name" id="last_name_id">
+
+            <label for="email_id">Email :</label>
+            <input type="text" name="email" id="email_id">
+
+            <label for="password_id">Password :</label>
+            <input type="password" name="password" id="password_id">
+
+            <label for="role_id">Role :</label>
+            <select type="text" name="role" id="role_id">
+                <option value="USER" selected="selected">User</option>
+                <option value="COMPANY_ADMINISTRATOR">Company administrator</option>
+                <option value="BILLING_ADMINISTRATOR">Billing administrator</option>
+                <option value="TECHNICAL_ADMINISTRATOR">Technical administrator</option>
+            </select>
+
+            <input type="button" name="login" id="create_user_id" value="Create new user">
+            <input type="button" name="home" id="home" value="Home">
+        </form>
+    </div>
+</div>
+</body>
+</html>

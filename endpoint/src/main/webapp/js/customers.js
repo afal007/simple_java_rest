@@ -20,8 +20,9 @@ $(document).ready(function(){
             'Authorization': 'Basic ' + btoa('admin' + ':' + 'setup')
         }
     }).done(function(data) {
-        var json = $.parseJSON(data);
+        //var json = $.parseJSON(data);
 
+        var json = data;
         var dataSet = [];
         for(var i = 0; i < json.length; i++) {
             var obj = json[i];

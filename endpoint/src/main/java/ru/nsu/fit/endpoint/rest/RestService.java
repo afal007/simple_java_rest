@@ -53,7 +53,7 @@ public class RestService {
     @RolesAllowed(Roles.ADMIN)
     @GET
     @Path("/get_customers")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getCustomers() {
         try {
             List<Customer.CustomerData> result = DBService.getCustomers();
@@ -62,6 +62,23 @@ public class RestService {
         } catch (IllegalArgumentException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         } catch (BadCustomerException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        }
+    }
+
+    @RolesAllowed({Roles.ADMIN, Roles.CUSTOMER})
+    @GET
+    @Path("/get_users/{customer_login}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUsers(@PathParam("customer_login") String customerLogin) {
+        try {
+            UUID id = DBService.getCustomerIdByLogin(customerLogin);
+            List<User.UserData> result = DBService.getUsers(id);
+            String resultData = JsonMapper.toJson(result, true);
+            return Response.ok().entity(resultData).build();
+        } catch (IllegalArgumentException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        } catch (BadUserException ex) {
             return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
         }
     }
@@ -267,7 +284,6 @@ public class RestService {
     @RolesAllowed(Roles.CUSTOMER)
     @POST
     @Path("/top_up_balance/{customer_id}/{amount}")
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response topUpCustomerBalance(@PathParam("customer_id") UUID customerId, @PathParam("amount") Integer amount) {
         try {
