@@ -1,4 +1,4 @@
-package ru.nsu.fit.tests;
+package ru.nsu.fit.tests.api;
 
 import io.codearte.jfairy.Fairy;
 import org.testng.Assert;

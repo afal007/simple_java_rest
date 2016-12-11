@@ -1,4 +1,4 @@
-package ru.nsu.fit.tests;
+package ru.nsu.fit.tests.api;
 
 import io.codearte.jfairy.Fairy;
 import org.testng.Assert;
@@ -7,10 +7,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import ru.nsu.fit.services.rest.RestService;
 import ru.nsu.fit.shared.AllureUtils;
-import ru.nsu.fit.shared.JsonMapper;
 import ru.nsu.fit.shared.classmock.Customer;
 import ru.nsu.fit.shared.classmock.Plan;
-import ru.nsu.fit.shared.classmock.Subscription;
 import ru.yandex.qatools.allure.annotations.*;
 import ru.yandex.qatools.allure.model.SeverityLevel;
 
@@ -20,8 +18,8 @@ import java.util.UUID;
 /**
  * author: Alexander Fal (falalexandr007@gmail.com)
  */
-@Title("Customer Buy Plan With Sufficient Funds Test")
-public class CustomerBuyPlanWithSufficientFundsTest {
+@Title("Customer Buy Plan Already Owned")
+public class CustomerBuyPlanAlreadyOwnedTest {
     private static final String PLAN_TEMPLATE = "{\n" +
             "\t\"name\":\"%s\",\n" +
             "    \"details\":\"%s\",\n" +
@@ -54,9 +52,9 @@ public class CustomerBuyPlanWithSufficientFundsTest {
     }
 
     @Test
-    @Title("Customer buy plan sufficient funds")
-    @Description("Buy plan as customer with sufficient funds via REST API")
-    @Severity(SeverityLevel.BLOCKER)
+    @Title("Customer buy owned plan")
+    @Description("Buy plan as customer which already owns this plan via REST API")
+    @Severity(SeverityLevel.NORMAL)
     @Features("Plan subscription")
     @Stories("Buy plan")
     public void test() {
@@ -64,6 +62,7 @@ public class CustomerBuyPlanWithSufficientFundsTest {
         createPlan();
         createCustomer();
         authorize(testCustomer.data.login, testCustomer.data.pass);
+        buyPlan();
         String response = buyPlan();
         check(response);
     }
@@ -81,7 +80,7 @@ public class CustomerBuyPlanWithSufficientFundsTest {
                         testFairy.textProducer().sentence(),
                         testFairy.baseProducer().randomBetween(10, 100),
                         testFairy.baseProducer().randomBetween(100, 500),
-                        testFairy.baseProducer().randomInt(1000)),
+                        testFairy.baseProducer().randomBetween(1000, 5000)),
                 UUID.randomUUID());
 
         Response response = rest.createPlan(
@@ -107,7 +106,7 @@ public class CustomerBuyPlanWithSufficientFundsTest {
                         testFairy.person().lastName(),
                         testFairy.person().email(),
                         "123StrPass",
-                        10000),
+                        testFairy.baseProducer().randomBetween(6000, 10000)),
                 UUID.randomUUID());
 
         Response response = rest.createCustomer(
@@ -136,18 +135,6 @@ public class CustomerBuyPlanWithSufficientFundsTest {
 
     @Step("Check response")
     public void check(String strResponse) {
-        Response response = rest.getSubscriptionData(strResponse);
-
-        Subscription subscription = JsonMapper.fromJson(response.readEntity(String.class), Subscription.class);
-        Subscription toCheck = new Subscription(
-                new Subscription.SubscriptionData(Subscription.SubscriptionData.Status.DONE),
-                subscription.id,
-                testCustomer.id,
-                testPlan.id);
-
-        Assert.assertEquals(subscription.data.usedSeats, toCheck.data.usedSeats);
-        Assert.assertEquals(subscription.data.status, toCheck.data.status);
-        Assert.assertEquals(subscription.customerId, toCheck.customerId);
-        Assert.assertEquals(subscription.planId, toCheck.planId);
+        Assert.assertEquals(strResponse, "Plan is already owned by this customer!");
     }
 }

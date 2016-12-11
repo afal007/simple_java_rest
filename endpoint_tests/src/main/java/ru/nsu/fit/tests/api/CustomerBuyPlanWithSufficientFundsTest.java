@@ -1,4 +1,4 @@
-package ru.nsu.fit.tests;
+package ru.nsu.fit.tests.api;
 
 import io.codearte.jfairy.Fairy;
 import org.testng.Assert;
@@ -11,7 +11,6 @@ import ru.nsu.fit.shared.JsonMapper;
 import ru.nsu.fit.shared.classmock.Customer;
 import ru.nsu.fit.shared.classmock.Plan;
 import ru.nsu.fit.shared.classmock.Subscription;
-import ru.nsu.fit.shared.classmock.User;
 import ru.yandex.qatools.allure.annotations.*;
 import ru.yandex.qatools.allure.model.SeverityLevel;
 
@@ -21,8 +20,8 @@ import java.util.UUID;
 /**
  * author: Alexander Fal (falalexandr007@gmail.com)
  */
-@Title("Customer Add User To Subscription Test")
-public class CustomerAddUserToSubscriptionTest {
+@Title("Customer Buy Plan With Sufficient Funds Test")
+public class CustomerBuyPlanWithSufficientFundsTest {
     private static final String PLAN_TEMPLATE = "{\n" +
             "\t\"name\":\"%s\",\n" +
             "    \"details\":\"%s\",\n" +
@@ -39,18 +38,8 @@ public class CustomerAddUserToSubscriptionTest {
             "    \"money\":\"%s\"\n" +
             "}";
 
-    private static final String USER_TEMPLATE = "{\n" +
-            "\t\"firstName\":\"%s\",\n" +
-            "    \"lastName\":\"%s\",\n" +
-            "    \"login\":\"%s\",\n" +
-            "    \"pass\":\"%s\",\n" +
-            "    \"userRole\":\"%s\"\n" +
-            "}";
-
     private Plan testPlan;
     private Customer testCustomer;
-    private User testUser;
-    private String subscriptionId;
 
     private Fairy testFairy;
     private RestService rest;
@@ -65,19 +54,17 @@ public class CustomerAddUserToSubscriptionTest {
     }
 
     @Test
-    @Title("Customer subscribe user")
-    @Description("Add user to subscription as customer via REST API")
-    @Severity(SeverityLevel.CRITICAL)
-    @Features("User management")
-    @Stories("Subscribe user")
+    @Title("Customer buy plan sufficient funds")
+    @Description("Buy plan as customer with sufficient funds via REST API")
+    @Severity(SeverityLevel.BLOCKER)
+    @Features("Plan subscription")
+    @Stories("Buy plan")
     public void test() {
         authorize("admin", "setup");
         createPlan();
         createCustomer();
         authorize(testCustomer.data.login, testCustomer.data.pass);
-        buyPlan();
-        createUser();
-        String response = addUserToSubscription();
+        String response = buyPlan();
         check(response);
     }
 
@@ -138,44 +125,9 @@ public class CustomerAddUserToSubscriptionTest {
         AllureUtils.saveTextLog("Response", responseText);
     }
 
-    @Step("Add user")
-    private void createUser() {
-        testUser = new User(
-                new User.UserData(
-                        testFairy.person().firstName(),
-                        testFairy.person().lastName(),
-                        testFairy.person().email(),
-                        "123StrPass",
-                        User.UserData.UserRole.USER),
-                UUID.randomUUID(),
-                testCustomer.id);
-
-        Response response = rest.createUser(
-                String.format(
-                        USER_TEMPLATE,
-                        testUser.data.firstName,
-                        testUser.data.lastName,
-                        testUser.data.login,
-                        testUser.data.pass,
-                        testUser.data.userRole));
-
-        String id = response.readEntity(String.class);
-        testUser.id = UUID.fromString(id);
-
-        AllureUtils.saveTextLog("Response:", id);
-    }
-
     @Step("Buy plan")
-    private void buyPlan() {
+    private String buyPlan() {
         Response response = rest.buyPlan(testPlan.id.toString());
-        subscriptionId = response.readEntity(String.class);
-
-        AllureUtils.saveTextLog("Response", subscriptionId);
-    }
-
-    @Step("Buy plan")
-    private String addUserToSubscription() {
-        Response response = rest.subscribeUser(testUser.id.toString(), subscriptionId);
         String responseText = response.readEntity(String.class);
 
         AllureUtils.saveTextLog("Response", responseText);
@@ -184,7 +136,18 @@ public class CustomerAddUserToSubscriptionTest {
 
     @Step("Check response")
     public void check(String strResponse) {
-        Assert.assertEquals(strResponse,
-                "Succesfully assigned user " + testUser.id.toString() + " to subscription " + subscriptionId.toString());
+        Response response = rest.getSubscriptionData(strResponse);
+
+        Subscription subscription = JsonMapper.fromJson(response.readEntity(String.class), Subscription.class);
+        Subscription toCheck = new Subscription(
+                new Subscription.SubscriptionData(Subscription.SubscriptionData.Status.DONE),
+                subscription.id,
+                testCustomer.id,
+                testPlan.id);
+
+        Assert.assertEquals(subscription.data.usedSeats, toCheck.data.usedSeats);
+        Assert.assertEquals(subscription.data.status, toCheck.data.status);
+        Assert.assertEquals(subscription.customerId, toCheck.customerId);
+        Assert.assertEquals(subscription.planId, toCheck.planId);
     }
 }

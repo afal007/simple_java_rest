@@ -1,4 +1,4 @@
-package ru.nsu.fit.tests;
+package ru.nsu.fit.tests.ui;
 
 import org.openqa.selenium.By;
 import org.testng.annotations.AfterClass;

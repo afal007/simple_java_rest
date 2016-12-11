@@ -1,4 +1,4 @@
-package ru.nsu.fit.tests;
+package ru.nsu.fit.tests.api;
 
 import io.codearte.jfairy.Fairy;
 import org.testng.Assert;
@@ -9,6 +9,7 @@ import ru.nsu.fit.services.rest.RestService;
 import ru.nsu.fit.shared.AllureUtils;
 import ru.nsu.fit.shared.JsonMapper;
 import ru.nsu.fit.shared.classmock.Customer;
+import ru.nsu.fit.shared.classmock.User;
 import ru.yandex.qatools.allure.annotations.*;
 import ru.yandex.qatools.allure.model.SeverityLevel;
 
@@ -18,8 +19,8 @@ import java.util.UUID;
 /**
  * author: Alexander Fal (falalexandr007@gmail.com)
  */
-@Title("Customer Create Customer Test")
-public class CustomerCreateCustomerTest {
+@Title("Customer Create User Test")
+public class CustomerCreateUserTest {
     private static final String CUSTOMER_TEMPLATE = "{\n" +
             "\t\"firstName\":\"%s\",\n" +
             "    \"lastName\":\"%s\",\n" +
@@ -28,7 +29,16 @@ public class CustomerCreateCustomerTest {
             "    \"money\":\"%s\"\n" +
             "}";
 
+    private static final String USER_TEMPLATE = "{\n" +
+            "\t\"firstName\":\"%s\",\n" +
+            "    \"lastName\":\"%s\",\n" +
+            "    \"login\":\"%s\",\n" +
+            "    \"pass\":\"%s\",\n" +
+            "    \"userRole\":\"%s\"\n" +
+            "}";
+
     private Customer testCustomer;
+    private User testUser;
 
     private Fairy testFairy;
     private RestService rest;
@@ -43,17 +53,17 @@ public class CustomerCreateCustomerTest {
     }
 
     @Test
-    @Title("Customer create customer")
-    @Description("Create customer as customer via REST API")
-    @Severity(SeverityLevel.NORMAL)
+    @Title("Customer create user")
+    @Description("Create user as customer via REST API")
+    @Severity(SeverityLevel.BLOCKER)
     @Features("Authorization")
     @Stories("Customer auth")
     public void test() {
         authorize("admin", "setup");
         createCustomer();
         authorize(testCustomer.data.login, testCustomer.data.pass);
-        String response = createCustomer();
-        check(response);
+        createUser();
+        check();
     }
 
     @Step("Auth")
@@ -62,7 +72,7 @@ public class CustomerCreateCustomerTest {
     }
 
     @Step("Add customer")
-    private String createCustomer() {
+    private void createCustomer() {
         testCustomer = new Customer(
                 new Customer.CustomerData(
                         testFairy.person().firstName(),
@@ -84,12 +94,44 @@ public class CustomerCreateCustomerTest {
         String strResponse = response.readEntity(String.class);
 
         AllureUtils.saveTextLog("Response:", strResponse);
-
-        return strResponse;
     }
 
-    @Step("Check response")
-    public void check(String response) {
-        Assert.assertEquals(response, "You cannot access this resource");
+    @Step("Add user")
+    private void createUser() {
+        testUser = new User(
+                new User.UserData(
+                        testFairy.person().firstName(),
+                        testFairy.person().lastName(),
+                        testFairy.person().email(),
+                        "123StrPass",
+                        User.UserData.UserRole.USER),
+                UUID.randomUUID(),
+                testCustomer.id);
+
+        Response response = rest.createUser(
+                String.format(
+                        USER_TEMPLATE,
+                        testUser.data.firstName,
+                        testUser.data.lastName,
+                        testUser.data.login,
+                        testUser.data.pass,
+                        testUser.data.userRole));
+
+        String id = response.readEntity(String.class);
+        testUser.id = UUID.fromString(id);
+
+        AllureUtils.saveTextLog("Response:", id);
+    }
+
+    @Step("Check user")
+    public void check() {
+        Response response = rest.getUserData(testUser.id.toString());
+        User user = JsonMapper.fromJson(response.readEntity(String.class), User.class);
+
+        Assert.assertEquals(user.data.firstName, testUser.data.firstName);
+        Assert.assertEquals(user.data.lastName, testUser.data.lastName);
+        Assert.assertEquals(user.data.login, testUser.data.login);
+        Assert.assertEquals(user.data.pass, testUser.data.pass);
+        Assert.assertEquals(user.data.userRole, testUser.data.userRole);
     }
 }

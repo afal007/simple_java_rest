@@ -1,37 +1,37 @@
 <suite name="BuildVerificationTest">
     <test name="Create customer tests">
         <classes>
-            <class name="ru.nsu.fit.tests.AdminCreateCustomerTest" />
-            <class name="ru.nsu.fit.tests.CustomerCreateCustomerTest" />
+            <class name="ru.nsu.fit.tests.api.AdminCreateCustomerTest" />
+            <class name="ru.nsu.fit.tests.api.CustomerCreateCustomerTest" />
         </classes>
     </test>
     <test name="Create user tests">
         <classes>
-            <class name="ru.nsu.fit.tests.CustomerCreateUserTest" />
-            <class name="ru.nsu.fit.tests.UserCreateUserTest" />
+            <class name="ru.nsu.fit.tests.api.CustomerCreateUserTest" />
+            <class name="ru.nsu.fit.tests.api.UserCreateUserTest" />
         </classes>
     </test>
     <test name="Create plan tests">
         <classes>
-            <class name="ru.nsu.fit.tests.CreatePlanTest" />
+            <class name="ru.nsu.fit.tests.api.CreatePlanTest" />
         </classes>
     </test>
     <test name="Create subscription tests">
         <classes>
-            <class name="ru.nsu.fit.tests.CustomerBuyPlanWithSufficientFundsTest" />
-            <class name="ru.nsu.fit.tests.CustomerBuyPlanWithInsufficientFundsTest" />
-            <class name="ru.nsu.fit.tests.CustomerBuyPlanAlreadyOwnedTest" />
-            <class name="ru.nsu.fit.tests.CustomerBuyExternalPlanWithSufficientFundsTest" />
+            <class name="ru.nsu.fit.tests.api.CustomerBuyPlanWithSufficientFundsTest" />
+            <class name="ru.nsu.fit.tests.api.CustomerBuyPlanWithInsufficientFundsTest" />
+            <class name="ru.nsu.fit.tests.api.CustomerBuyPlanAlreadyOwnedTest" />
+            <class name="ru.nsu.fit.tests.api.CustomerBuyExternalPlanWithSufficientFundsTest" />
         </classes>
     </test>
     <test name="User management tests">
         <classes>
-            <class name="ru.nsu.fit.tests.CustomerAddUserToSubscriptionTest" />
+            <class name="ru.nsu.fit.tests.api.CustomerAddUserToSubscriptionTest" />
         </classes>
     </test>
     <test name="Balance management tests">
         <classes>
-            <class name="ru.nsu.fit.tests.CustomerTopUpBalanceTest" />
+            <class name="ru.nsu.fit.tests.api.CustomerTopUpBalanceTest" />
         </classes>
     </test>
 </suite>

@@ -1,4 +1,4 @@
-package ru.nsu.fit.tests;
+package ru.nsu.fit.tests.api;
 
 import io.codearte.jfairy.Fairy;
 import org.testng.Assert;
@@ -19,8 +19,8 @@ import java.util.UUID;
 /**
  * author: Alexander Fal (falalexandr007@gmail.com)
  */
-@Title("Customer Create User Test")
-public class CustomerCreateUserTest {
+@Title("User Create User Test")
+public class UserCreateUserTest {
     private static final String CUSTOMER_TEMPLATE = "{\n" +
             "\t\"firstName\":\"%s\",\n" +
             "    \"lastName\":\"%s\",\n" +
@@ -53,17 +53,19 @@ public class CustomerCreateUserTest {
     }
 
     @Test
-    @Title("Customer create user")
+    @Title("User create user")
     @Description("Create user as customer via REST API")
-    @Severity(SeverityLevel.BLOCKER)
+    @Severity(SeverityLevel.NORMAL)
     @Features("Authorization")
-    @Stories("Customer auth")
+    @Stories("User auth")
     public void test() {
         authorize("admin", "setup");
         createCustomer();
         authorize(testCustomer.data.login, testCustomer.data.pass);
         createUser();
-        check();
+        authorize(testUser.data.login, testUser.data.pass);
+        String response = createUser();
+        check(response);
     }
 
     @Step("Auth")
@@ -92,12 +94,13 @@ public class CustomerCreateUserTest {
                         testCustomer.data.money));
 
         String strResponse = response.readEntity(String.class);
+        testCustomer.id = UUID.fromString(strResponse);
 
         AllureUtils.saveTextLog("Response:", strResponse);
     }
 
     @Step("Add user")
-    private void createUser() {
+    private String createUser() {
         testUser = new User(
                 new User.UserData(
                         testFairy.person().firstName(),
@@ -117,21 +120,18 @@ public class CustomerCreateUserTest {
                         testUser.data.pass,
                         testUser.data.userRole));
 
-        String id = response.readEntity(String.class);
-        testUser.id = UUID.fromString(id);
+        String strResponse = response.readEntity(String.class);
 
-        AllureUtils.saveTextLog("Response:", id);
+        if(!strResponse.equals("You cannot access this resource"))
+            testUser.id = UUID.fromString(strResponse);
+
+        AllureUtils.saveTextLog("Response:", strResponse);
+
+        return strResponse;
     }
 
-    @Step("Check user")
-    public void check() {
-        Response response = rest.getUserData(testUser.id.toString());
-        User user = JsonMapper.fromJson(response.readEntity(String.class), User.class);
-
-        Assert.assertEquals(user.data.firstName, testUser.data.firstName);
-        Assert.assertEquals(user.data.lastName, testUser.data.lastName);
-        Assert.assertEquals(user.data.login, testUser.data.login);
-        Assert.assertEquals(user.data.pass, testUser.data.pass);
-        Assert.assertEquals(user.data.userRole, testUser.data.userRole);
+    @Step("Check response")
+    public void check(String response) {
+        Assert.assertEquals(response, "You cannot access this resource");
     }
 }

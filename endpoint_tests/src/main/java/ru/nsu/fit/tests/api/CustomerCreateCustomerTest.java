@@ -1,4 +1,4 @@
-package ru.nsu.fit.tests;
+package ru.nsu.fit.tests.api;
 
 import io.codearte.jfairy.Fairy;
 import org.testng.Assert;
@@ -9,7 +9,6 @@ import ru.nsu.fit.services.rest.RestService;
 import ru.nsu.fit.shared.AllureUtils;
 import ru.nsu.fit.shared.JsonMapper;
 import ru.nsu.fit.shared.classmock.Customer;
-import ru.nsu.fit.shared.classmock.User;
 import ru.yandex.qatools.allure.annotations.*;
 import ru.yandex.qatools.allure.model.SeverityLevel;
 
@@ -19,8 +18,8 @@ import java.util.UUID;
 /**
  * author: Alexander Fal (falalexandr007@gmail.com)
  */
-@Title("User Create User Test")
-public class UserCreateUserTest {
+@Title("Customer Create Customer Test")
+public class CustomerCreateCustomerTest {
     private static final String CUSTOMER_TEMPLATE = "{\n" +
             "\t\"firstName\":\"%s\",\n" +
             "    \"lastName\":\"%s\",\n" +
@@ -29,16 +28,7 @@ public class UserCreateUserTest {
             "    \"money\":\"%s\"\n" +
             "}";
 
-    private static final String USER_TEMPLATE = "{\n" +
-            "\t\"firstName\":\"%s\",\n" +
-            "    \"lastName\":\"%s\",\n" +
-            "    \"login\":\"%s\",\n" +
-            "    \"pass\":\"%s\",\n" +
-            "    \"userRole\":\"%s\"\n" +
-            "}";
-
     private Customer testCustomer;
-    private User testUser;
 
     private Fairy testFairy;
     private RestService rest;
@@ -53,18 +43,16 @@ public class UserCreateUserTest {
     }
 
     @Test
-    @Title("User create user")
-    @Description("Create user as customer via REST API")
+    @Title("Customer create customer")
+    @Description("Create customer as customer via REST API")
     @Severity(SeverityLevel.NORMAL)
     @Features("Authorization")
-    @Stories("User auth")
+    @Stories("Customer auth")
     public void test() {
         authorize("admin", "setup");
         createCustomer();
         authorize(testCustomer.data.login, testCustomer.data.pass);
-        createUser();
-        authorize(testUser.data.login, testUser.data.pass);
-        String response = createUser();
+        String response = createCustomer();
         check(response);
     }
 
@@ -74,7 +62,7 @@ public class UserCreateUserTest {
     }
 
     @Step("Add customer")
-    private void createCustomer() {
+    private String createCustomer() {
         testCustomer = new Customer(
                 new Customer.CustomerData(
                         testFairy.person().firstName(),
@@ -94,36 +82,6 @@ public class UserCreateUserTest {
                         testCustomer.data.money));
 
         String strResponse = response.readEntity(String.class);
-        testCustomer.id = UUID.fromString(strResponse);
-
-        AllureUtils.saveTextLog("Response:", strResponse);
-    }
-
-    @Step("Add user")
-    private String createUser() {
-        testUser = new User(
-                new User.UserData(
-                        testFairy.person().firstName(),
-                        testFairy.person().lastName(),
-                        testFairy.person().email(),
-                        "123StrPass",
-                        User.UserData.UserRole.USER),
-                UUID.randomUUID(),
-                testCustomer.id);
-
-        Response response = rest.createUser(
-                String.format(
-                        USER_TEMPLATE,
-                        testUser.data.firstName,
-                        testUser.data.lastName,
-                        testUser.data.login,
-                        testUser.data.pass,
-                        testUser.data.userRole));
-
-        String strResponse = response.readEntity(String.class);
-
-        if(!strResponse.equals("You cannot access this resource"))
-            testUser.id = UUID.fromString(strResponse);
 
         AllureUtils.saveTextLog("Response:", strResponse);
 
