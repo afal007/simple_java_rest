@@ -17,7 +17,8 @@ $(document).ready( function () {
                 }
             })
                 .done(function (data) {
-                    document.getElementById("cur_balance").value = data.data.money;
+                    //document.getElementById("cur_balance").value = data.data.money;
+                    $("#cur_balance").append(data.data.money);
                 })
         });
 

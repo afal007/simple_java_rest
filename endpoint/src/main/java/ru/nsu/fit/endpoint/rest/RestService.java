@@ -9,6 +9,7 @@ import ru.nsu.fit.endpoint.service.database.data.Plan;
 import ru.nsu.fit.endpoint.service.database.data.User;
 import ru.nsu.fit.endpoint.service.database.data.Subscription.SubscriptionData;
 import ru.nsu.fit.endpoint.service.database.data.Subscription;
+import ru.nsu.fit.endpoint.service.database.exceptions.BadSubscriptionException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadUserException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadPlanException;
 import ru.nsu.fit.endpoint.service.database.exceptions.BadCustomerException;
@@ -220,6 +221,36 @@ public class RestService {
         }
     }
 
+    @RolesAllowed({Roles.ADMIN, Roles.CUSTOMER})
+    @GET
+    @Path("/get_plans")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPlans() {
+        try {
+            List<Plan> result = DBService.getPlans();
+            String resultData = JsonMapper.toJson(result, true);
+            return Response.ok().entity(resultData).build();
+        } catch (IllegalArgumentException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        } catch (BadPlanException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        }
+    }
+
+    @RolesAllowed({Roles.ADMIN, Roles.CUSTOMER})
+    @GET
+    @Path("/get_subscriptions/{customer_id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getSubscriptions(@PathParam("customer_id") UUID customerId) {
+        try {
+            List<Subscription> result = DBService.getSubscriptions(customerId);
+            String resultData = JsonMapper.toJson(result, true);
+            return Response.ok().entity(resultData).build();
+        } catch (IllegalArgumentException ex) {
+            return Response.status(400).entity(ex.getMessage() + "\n" + ExceptionUtils.getFullStackTrace(ex)).build();
+        }
+    }
+
     @RolesAllowed({Roles.ADMIN,Roles.CUSTOMER})
     @GET
     @Path("/get_subscription_data/{subscription_id}")
@@ -252,7 +283,7 @@ public class RestService {
         }
     }
 
-    @RolesAllowed({Roles.USER, Roles.CUSTOMER})
+    @RolesAllowed({Roles.USER, Roles.CUSTOMER, Roles.ADMIN})
     @GET
     @Path("/get_user_id/{user_login}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -298,7 +329,6 @@ public class RestService {
     @RolesAllowed(Roles.CUSTOMER)
     @GET
     @Path("/buy_plan/{plan_id}")
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response buyPlanById(@HeaderParam("Authorization") String auth, @PathParam("plan_id") UUID planId) {
         try {

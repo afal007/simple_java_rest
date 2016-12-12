@@ -24,11 +24,58 @@ $(document).ready(function(){
             })
                 .done(function (data) {
                     if(data['id'] == '00000000-0000-0000-0000-000000000000') {
-                        if ($("#email").next(".validation").length == 0) {
-                            $("#email").after("<div class='validation' style='color:red;margin-bottom: 20px;'>Wrong e-mail address.</div>");
-                            $('input[type="email"]').css({"border":"2px solid red","box-shadow":"0 0 3px red"});
-                        }
-                        $("#email").focus();
+                        $.get({
+                            url: 'rest/get_user_id/' + email,
+                            headers: {
+                                'Authorization': 'Basic ' + btoa('admin:setup')
+                            }
+                        })
+                            .done(function (data) {
+                                if (data['id'] == '00000000-0000-0000-0000-000000000000') {
+                                    if ($("#email").next(".validation").length == 0) {
+                                        $("#email").after("<div class='validation' style='color:red;margin-bottom: 20px;'>Wrong e-mail address.</div>");
+                                        $('input[type="email"]').css({
+                                            "border": "2px solid red",
+                                            "box-shadow": "0 0 3px red"
+                                        });
+                                    }
+                                    $("#email").focus();
+                                } else {
+                                    $("#email").next(".validation").remove();
+                                    $('input[type="password"]').css({
+                                        "border": "2px solid #00F5FF",
+                                        "box-shadow": "0 0 5px #00F5FF"
+                                    });
+
+                                    $.get({
+                                        url: 'rest/get_role',
+                                        headers: {
+                                            'Authorization': 'Basic ' + btoa(email + ':' + password)
+                                        }
+                                    })
+                                        .done(function (data) {
+                                            var dataObj = $.parseJSON(data);
+                                            var role = dataObj['role'];
+                                            if (role == 'USER') {
+                                                $.redirect('/endpoint/user_dashboard.html', {
+                                                    'login': email,
+                                                    'pass': password,
+                                                    'role': 'USER'
+                                                }, 'GET');
+                                            } else if (role == 'UNKNOWN') {
+                                                if ($("#password").next(".validation").length == 0) {
+                                                    $("#password").after("<div class='validation' style='color:red;margin-bottom: 20px;'>Wrong password.</div>");
+                                                    $('input[type="password"]').css({
+                                                        "border": "2px solid red",
+                                                        "box-shadow": "0 0 3px red"
+                                                    });
+                                                }
+                                                $("#password").focus();
+                                            }
+                                        })
+
+                                }
+                            })
                     } else {
                         $("#email").next(".validation").remove();
                         $('input[type="password"]').css({"border":"2px solid #00F5FF","box-shadow":"0 0 5px #00F5FF"});
