@@ -61,6 +61,7 @@ public class DBService {
 
     private static final String SELECT_PLAN_ID_BY_NAME = "SELECT id FROM plan WHERE name='%s'";
     private static final String SELECT_PLAN = "SELECT * FROM plan WHERE id='%s'";
+    private static final String SELECT_PLANS = "SELECT * FROM PLAN";
 
     private static final String DELETE_PLAN = "DELETE FROM PLAN WHERE id='%s'";
 
@@ -68,6 +69,7 @@ public class DBService {
     private static final String INSERT_SUBSCRIPTION = "INSERT INTO subscription(id, customer_id, plan_id, used_seats, status) VALUES ('%s', '%s', '%s', '%s', '%s')";
 
     private static final String SELECT_SUBSCRIPTION = "SELECT * FROM subscription WHERE id='%s'";
+    private static final String SELECT_SUBSCRIPTIONS = "SELECT * FROM subscription WHERE customer_id='%s'";
 
 
     private static final String INSERT_USER_ASSIGNMENT = "INSERT INTO USER_ASSIGNMENT(user_id, subscription_id) values ('%s', '%s')";
@@ -497,6 +499,65 @@ public class DBService {
             }
         }
     }
+
+    public static List<Plan> getPlans() throws BadPlanException {
+        synchronized (generalMutex) {
+            logger.info("Get plans");
+
+            try {
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(SELECT_PLANS);
+                List<Plan> result = Lists.newArrayList();
+                while (rs.next()) {
+                    result.add(new Plan(
+                            new Plan.PlanData(
+                                rs.getString(2),
+                                rs.getString(3),
+                                rs.getInt(4),
+                                rs.getInt(5),
+                                rs.getInt(6)),
+                            UUID.fromString(rs.getString(1))));
+                }
+                return result;
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
+    public static List<Subscription> getSubscriptions(UUID customerId) {
+        synchronized (generalMutex) {
+            logger.info("Get plans");
+
+            try {
+                Statement statement = connection.createStatement();
+                ResultSet rs = statement.executeQuery(
+                        String.format(
+                                SELECT_SUBSCRIPTIONS,
+                                customerId.toString()
+                        ));
+                List<Subscription> result = Lists.newArrayList();
+
+                Integer i = 0;
+                while (rs.next()) {
+                    result.add(new Subscription(
+                            new SubscriptionData(
+                                    Status.fromString(rs.getString("status"))),
+                            UUID.fromString(rs.getString(1)),
+                            UUID.fromString(rs.getString(2)),
+                            UUID.fromString(rs.getString(3))));
+
+                    result.get(i).getData().setUsedSeats(rs.getInt("used_seats"));
+                }
+                return result;
+            } catch (SQLException ex) {
+                logger.debug(ex.getMessage(), ex);
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
 
     private enum QueryIndex {ID, LOGIN}
     private static Customer getCustomerBy(QueryIndex index, String key){

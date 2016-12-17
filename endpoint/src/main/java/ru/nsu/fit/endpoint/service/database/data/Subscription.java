@@ -12,13 +12,13 @@ import java.util.UUID;
 public class Subscription extends Entity<Subscription.SubscriptionData>{
     private UUID id;
     private UUID customerId;
-    private UUID PlanId;
+    private UUID planId;
 
     public Subscription(SubscriptionData data, UUID id, UUID customerId, UUID PlanId) {
         super(data);
         this.id = id;
         this.customerId = customerId;
-        this.PlanId = PlanId;
+        this.planId = PlanId;
     }
 
     public UUID getId() {
@@ -34,10 +34,10 @@ public class Subscription extends Entity<Subscription.SubscriptionData>{
         this.customerId = customerId;
     }
     public UUID getPlanId() {
-        return PlanId;
+        return planId;
     }
     public void setPlanId(UUID planId) {
-        this.PlanId = planId;
+        this.planId = planId;
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
