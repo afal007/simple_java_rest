@@ -1,5 +1,6 @@
 package ru.nsu.fit.services.browser;
 
+import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -9,6 +10,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import ru.nsu.fit.shared.ImageUtils;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
@@ -70,11 +72,15 @@ public class Browser implements Closeable {
         return webDriver.findElements(element);
     }
 
+    public String getCurrentUrl() {
+        return webDriver.getCurrentUrl();
+    }
+
     public boolean isElementPresent(By element) {
         return getElements(element).size() != 0;
     }
 
-    public byte[] makeScreenshot() {
+    public byte [] makeScreenshot() {
         try {
             return ImageUtils.toByteArray(((TakesScreenshot)webDriver).getScreenshotAs(OutputType.FILE));
         } catch (IOException ex) {

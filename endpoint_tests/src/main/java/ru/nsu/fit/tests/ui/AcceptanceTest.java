@@ -8,6 +8,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import ru.nsu.fit.services.browser.Browser;
 import ru.nsu.fit.services.browser.BrowserService;
+import ru.nsu.fit.shared.classmock.Customer;
 import ru.yandex.qatools.allure.annotations.Description;
 import ru.yandex.qatools.allure.annotations.Features;
 import ru.yandex.qatools.allure.annotations.Severity;
@@ -20,6 +21,7 @@ import ru.yandex.qatools.allure.model.SeverityLevel;
 public class AcceptanceTest {
     private static final Logger logger = LoggerFactory.getLogger("UI_TEST_LOGGER");
     private Browser browser = null;
+    private Customer testCustomer;
 
     @BeforeClass
     public void beforeClass() {
@@ -36,19 +38,6 @@ public class AcceptanceTest {
         // login to admin cp
         logger.debug("Create customer test");
 
-        browser.openPage("http://localhost:8080/endpoint");
-        browser.waitForElement(By.id("email"));
-
-        logger.debug("Page is loaded");
-
-        browser.getElement(By.id("email")).sendKeys("admin");
-        browser.getElement(By.id("password")).sendKeys("setup");
-
-        logger.debug("Filled fields");
-
-        browser.getElement(By.id("login")).click();
-
-        logger.debug("Clicked \"Login\" button");
 
         // create customer
         browser.getElement(By.id("add_new_customer")).click();
