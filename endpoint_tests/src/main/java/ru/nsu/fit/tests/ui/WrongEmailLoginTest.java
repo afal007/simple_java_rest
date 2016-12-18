@@ -17,7 +17,7 @@ import ru.yandex.qatools.allure.model.SeverityLevel;
 /**
  * author: Alexander Fal (falalexandr007@gmail.com)
  */
-public class AdminLoginTest {
+public class WrongEmailLoginTest {
     private static final Logger logger = LoggerFactory.getLogger("UI_TEST_LOGGER");
     private Browser browser = null;
 
@@ -34,8 +34,8 @@ public class AdminLoginTest {
     }
 
     @Test
-    @Title("Administrator login")
-    @Description("Administrator login via UI API")
+    @Title("Wrong email login")
+    @Description("Wrong email login via UI API")
     @Severity(SeverityLevel.BLOCKER)
     @Features("Login")
     public void test() {
@@ -50,11 +50,11 @@ public class AdminLoginTest {
 
     @Step("Login")
     private void login() {
-        logger.debug("Admin login test start");
+        logger.debug("Wrong email login test start");
 
         LoginScreen.openPage();
 
-        LoginScreen.fillFields("admin", "setup");
+        LoginScreen.fillFields("email", "password");
 
         logger.debug("Filled fields");
 
@@ -64,11 +64,11 @@ public class AdminLoginTest {
 
     @Step("Check login")
     private void checkLogin() {
-        browser.waitForElement(By.id("add_new_customer"));
+        browser.waitForElement(By.className("validation"));
 
         logger.debug("Page is loaded");
 
-        AllureUtils.saveImageAttach("Admin dashboard: ", browser.makeScreenshot());
-        Assert.assertTrue(browser.getCurrentUrl().equals("http://localhost:8080/endpoint/customers.html?login=admin&pass=setup&role=ADMIN"));
+        AllureUtils.saveImageAttach("Wrong e-mail: ", browser.makeScreenshot());
+        Assert.assertEquals(browser.getText(By.className("validation")), "Wrong e-mail address.");
     }
 }

@@ -12,8 +12,11 @@ import ru.nsu.fit.services.browser.Browser;
 import ru.nsu.fit.services.browser.BrowserService;
 import ru.nsu.fit.services.data.CustomerService;
 import ru.nsu.fit.services.data.exceptions.CustomerServiceException;
+import ru.nsu.fit.services.rest.RestService;
 import ru.nsu.fit.shared.AllureUtils;
 import ru.nsu.fit.shared.classmock.Customer;
+import ru.nsu.fit.shared.screens.AddCustomerScreen;
+import ru.nsu.fit.shared.screens.CustomersScreen;
 import ru.nsu.fit.shared.screens.LoginScreen;
 import ru.yandex.qatools.allure.annotations.*;
 import ru.yandex.qatools.allure.model.SeverityLevel;
@@ -24,7 +27,7 @@ import java.util.UUID;
 /**
  * author: Alexander Fal (falalexandr007@gmail.com)
  */
-public class CustomerLoginTest {
+public class CreateNewCustomerTest {
     private static final Logger logger = LoggerFactory.getLogger("UI_TEST_LOGGER");
     private Browser browser = null;
     private Customer testCustomer;
@@ -33,6 +36,7 @@ public class CustomerLoginTest {
     public void beforeClass() {
         browser = BrowserService.openNewBrowser();
         org.apache.log4j.BasicConfigurator.configure();
+        init();
     }
 
     @AfterClass
@@ -42,23 +46,28 @@ public class CustomerLoginTest {
     }
 
     @Test
-    @Title("Customer login")
-    @Description("Customer login via UI API")
+    @Title("Create customer")
+    @Description("Create customer via UI API")
     @Severity(SeverityLevel.BLOCKER)
-    @Features("Login")
+    @Features("Customer management")
     public void test() {
-        init();
-        createCustomer();
         login();
-        checkLogin();
+        createCustomer();
+        checkCustomer();
     }
 
     private void init() {
         LoginScreen.init(browser, logger);
+        CustomersScreen.init(browser, logger);
+        AddCustomerScreen.init(browser, logger);
     }
 
     @Step("Create customer")
     private void createCustomer() {
+        CustomersScreen.clickAddCustomer();
+
+        logger.debug("Clicked Add new customer button");
+
         Fairy testFairy = Fairy.create();
 
         testCustomer = new Customer(
@@ -70,39 +79,40 @@ public class CustomerLoginTest {
                         10000),
                 UUID.randomUUID());
 
-        try {
-            CustomerService.createCustomer(
-                        testCustomer.data.firstName,
-                        testCustomer.data.lastName,
-                        testCustomer.data.login,
-                        testCustomer.data.pass,
-                        testCustomer.data.money);
-        } catch (CustomerServiceException ex) {
-            throw new RuntimeException(ex);
-        }
+        AddCustomerScreen.fillFields(testCustomer.data.firstName, testCustomer.data.lastName, testCustomer.data.login, testCustomer.data.pass);
+        AllureUtils.saveImageAttach("Customer fields: ", browser.makeScreenshot());
+
+        logger.debug("Filled new customer fields");
+
+        AddCustomerScreen.addCustomer();
+
+        logger.debug("Clicked Create new customer button");
     }
 
     @Step("Login")
     private void login() {
-        logger.debug("Customer login test start");
+        logger.debug("Customer creation test start");
 
         LoginScreen.openPage();
 
-        LoginScreen.fillFields(testCustomer.data.login, testCustomer.data.pass);
+        LoginScreen.fillFields("admin", "setup");
 
-        logger.debug("Filled fields");
+        logger.debug("Filled login fields");
 
-        AllureUtils.saveImageAttach("Fields: ", browser.makeScreenshot());
+        AllureUtils.saveImageAttach("Login fields: ", browser.makeScreenshot());
         LoginScreen.login();
     }
 
-    @Step("Check login")
-    private void checkLogin() {
-        browser.waitForElement(By.id("add_user"));
+    @Step("Check customer")
+    private void checkCustomer() {
+        UUID failed = new UUID(0L, 0L);
+        UUID customerId;
 
-        logger.debug("Page is loaded");
+        RestService.configAuth("admin", "setup");
+        Response response = RestService.getCustomerIdByLogin(testCustomer.data.login);
 
-        AllureUtils.saveImageAttach("Customer dashboard: ", browser.makeScreenshot());
-        Assert.assertEquals(browser.getCurrentUrl().split("\\?")[0], "http://localhost:8080/endpoint/customer_dashboard.html");
+        customerId = UUID.fromString(response.readEntity(String.class).split(":")[1].replace("\"", "").replace("}", ""));
+
+        Assert.assertNotEquals(customerId, failed);
     }
 }

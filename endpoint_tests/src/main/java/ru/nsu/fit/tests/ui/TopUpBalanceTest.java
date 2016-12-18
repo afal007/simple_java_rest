@@ -1,7 +1,6 @@
 package ru.nsu.fit.tests.ui;
 
 import io.codearte.jfairy.Fairy;
-import org.openqa.selenium.By;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -14,25 +13,29 @@ import ru.nsu.fit.services.data.CustomerService;
 import ru.nsu.fit.services.data.exceptions.CustomerServiceException;
 import ru.nsu.fit.shared.AllureUtils;
 import ru.nsu.fit.shared.classmock.Customer;
+import ru.nsu.fit.shared.screens.AddUserScreen;
+import ru.nsu.fit.shared.screens.BalanceScreen;
+import ru.nsu.fit.shared.screens.CustomerDashboardScreen;
 import ru.nsu.fit.shared.screens.LoginScreen;
 import ru.yandex.qatools.allure.annotations.*;
 import ru.yandex.qatools.allure.model.SeverityLevel;
 
-import javax.ws.rs.core.Response;
 import java.util.UUID;
 
 /**
  * author: Alexander Fal (falalexandr007@gmail.com)
  */
-public class CustomerLoginTest {
+public class TopUpBalanceTest {
     private static final Logger logger = LoggerFactory.getLogger("UI_TEST_LOGGER");
     private Browser browser = null;
     private Customer testCustomer;
+    private Integer firstBalance;
 
     @BeforeClass
     public void beforeClass() {
         browser = BrowserService.openNewBrowser();
         org.apache.log4j.BasicConfigurator.configure();
+        init();
     }
 
     @AfterClass
@@ -42,19 +45,21 @@ public class CustomerLoginTest {
     }
 
     @Test
-    @Title("Customer login")
-    @Description("Customer login via UI API")
-    @Severity(SeverityLevel.BLOCKER)
-    @Features("Login")
+    @Title("Top up balance")
+    @Description("Top up balance via UI API")
+    @Severity(SeverityLevel.CRITICAL)
+    @Features("Balance management")
     public void test() {
-        init();
         createCustomer();
         login();
-        checkLogin();
+        topUpBalance();
+        checkBalance();
     }
 
     private void init() {
         LoginScreen.init(browser, logger);
+        CustomerDashboardScreen.init(browser, logger);
+        BalanceScreen.init(browser, logger);
     }
 
     @Step("Create customer")
@@ -72,37 +77,57 @@ public class CustomerLoginTest {
 
         try {
             CustomerService.createCustomer(
-                        testCustomer.data.firstName,
-                        testCustomer.data.lastName,
-                        testCustomer.data.login,
-                        testCustomer.data.pass,
-                        testCustomer.data.money);
+                    testCustomer.data.firstName,
+                    testCustomer.data.lastName,
+                    testCustomer.data.login,
+                    testCustomer.data.pass,
+                    testCustomer.data.money);
         } catch (CustomerServiceException ex) {
             throw new RuntimeException(ex);
         }
     }
 
+    @Step("Top up balance")
+    private void topUpBalance() {
+        CustomerDashboardScreen.clickBalance();
+
+        logger.debug("Clicked Balance button");
+
+        firstBalance = BalanceScreen.getBalance();
+        BalanceScreen.fillBalance(100);
+
+        AllureUtils.saveImageAttach("Balance field: ", browser.makeScreenshot());
+
+        logger.debug("Filled balance field");
+
+        BalanceScreen.accept();
+
+        logger.debug("Clicked Accept button");
+    }
+
     @Step("Login")
     private void login() {
-        logger.debug("Customer login test start");
+        logger.debug("Top up balance test start");
 
         LoginScreen.openPage();
 
         LoginScreen.fillFields(testCustomer.data.login, testCustomer.data.pass);
 
-        logger.debug("Filled fields");
+        logger.debug("Filled login fields");
 
-        AllureUtils.saveImageAttach("Fields: ", browser.makeScreenshot());
+        AllureUtils.saveImageAttach("Login fields: ", browser.makeScreenshot());
         LoginScreen.login();
     }
 
-    @Step("Check login")
-    private void checkLogin() {
-        browser.waitForElement(By.id("add_user"));
+    @Step("Check balance")
+    private void checkBalance() {
+        browser.refresh();
+        browser.refresh();
 
-        logger.debug("Page is loaded");
+        Integer balance = BalanceScreen.getBalance();
 
-        AllureUtils.saveImageAttach("Customer dashboard: ", browser.makeScreenshot());
-        Assert.assertEquals(browser.getCurrentUrl().split("\\?")[0], "http://localhost:8080/endpoint/customer_dashboard.html");
+        AllureUtils.saveImageAttach("Balance: ", browser.makeScreenshot());
+
+        Assert.assertTrue(balance - firstBalance == 100);
     }
 }

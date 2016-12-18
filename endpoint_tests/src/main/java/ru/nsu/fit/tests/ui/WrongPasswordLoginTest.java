@@ -18,13 +18,12 @@ import ru.nsu.fit.shared.screens.LoginScreen;
 import ru.yandex.qatools.allure.annotations.*;
 import ru.yandex.qatools.allure.model.SeverityLevel;
 
-import javax.ws.rs.core.Response;
 import java.util.UUID;
 
 /**
  * author: Alexander Fal (falalexandr007@gmail.com)
  */
-public class CustomerLoginTest {
+public class WrongPasswordLoginTest {
     private static final Logger logger = LoggerFactory.getLogger("UI_TEST_LOGGER");
     private Browser browser = null;
     private Customer testCustomer;
@@ -42,8 +41,8 @@ public class CustomerLoginTest {
     }
 
     @Test
-    @Title("Customer login")
-    @Description("Customer login via UI API")
+    @Title("Wrong password login")
+    @Description("Wrong password login via UI API")
     @Severity(SeverityLevel.BLOCKER)
     @Features("Login")
     public void test() {
@@ -72,11 +71,11 @@ public class CustomerLoginTest {
 
         try {
             CustomerService.createCustomer(
-                        testCustomer.data.firstName,
-                        testCustomer.data.lastName,
-                        testCustomer.data.login,
-                        testCustomer.data.pass,
-                        testCustomer.data.money);
+                    testCustomer.data.firstName,
+                    testCustomer.data.lastName,
+                    testCustomer.data.login,
+                    testCustomer.data.pass,
+                    testCustomer.data.money);
         } catch (CustomerServiceException ex) {
             throw new RuntimeException(ex);
         }
@@ -84,11 +83,11 @@ public class CustomerLoginTest {
 
     @Step("Login")
     private void login() {
-        logger.debug("Customer login test start");
+        logger.debug("Wrong password login test start");
 
         LoginScreen.openPage();
 
-        LoginScreen.fillFields(testCustomer.data.login, testCustomer.data.pass);
+        LoginScreen.fillFields(testCustomer.data.login, "1234");
 
         logger.debug("Filled fields");
 
@@ -98,11 +97,11 @@ public class CustomerLoginTest {
 
     @Step("Check login")
     private void checkLogin() {
-        browser.waitForElement(By.id("add_user"));
+        browser.waitForElement(By.className("validation"));
 
         logger.debug("Page is loaded");
 
-        AllureUtils.saveImageAttach("Customer dashboard: ", browser.makeScreenshot());
-        Assert.assertEquals(browser.getCurrentUrl().split("\\?")[0], "http://localhost:8080/endpoint/customer_dashboard.html");
+        AllureUtils.saveImageAttach("Wrong password: ", browser.makeScreenshot());
+        Assert.assertEquals(browser.getText(By.className("validation")), "Wrong password.");
     }
 }

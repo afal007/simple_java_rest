@@ -1,0 +1,27 @@
+<suite name="AcceptanceTest">
+    <test name="Login tests">
+        <classes>
+            <class name="ru.nsu.fit.tests.ui.AdminLoginTest" />
+            <class name="ru.nsu.fit.tests.ui.CustomerLoginTest" />
+            <class name="ru.nsu.fit.tests.ui.UserLoginTest" />
+            <class name="ru.nsu.fit.tests.ui.WrongEmailLoginTest" />
+            <class name="ru.nsu.fit.tests.ui.WrongPasswordLoginTest" />
+        </classes>
+    </test>
+    <test name="Customer management tests">
+        <classes>
+            <class name="ru.nsu.fit.tests.ui.CreateNewCustomerTest" />
+        </classes>
+    </test>
+    <test name="User management test">
+        <classes>
+            <class name="ru.nsu.fit.tests.ui.CreateNewUserTest" />
+        </classes>
+    </test>
+    <test name="Balance management tests">
+        <classes>
+            <class name="ru.nsu.fit.tests.ui.TopUpBalanceTest" />
+            <class name="ru.nsu.fit.tests.ui.WrongTopUpBalanceTest" />
+        </classes>
+    </test>
+</suite>

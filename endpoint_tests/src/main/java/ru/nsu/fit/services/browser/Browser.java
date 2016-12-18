@@ -68,6 +68,10 @@ public class Browser implements Closeable {
         return getElement(element).getAttribute("value");
     }
 
+    public String getText(By element) {
+        return getElement(element).getText();
+    }
+
     public List<WebElement> getElements(By element) {
         return webDriver.findElements(element);
     }
@@ -86,6 +90,10 @@ public class Browser implements Closeable {
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    public void refresh() {
+        webDriver.navigate().refresh();
     }
 
     @Override

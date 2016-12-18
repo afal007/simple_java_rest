@@ -59,6 +59,15 @@ public class RestService {
 		return response;
 	}
 
+	public static Response getUserIdByLogin(String login) {
+		Response response = webTarget
+				.path("get_user_id").path(login).request()
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
+				.property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password)
+				.get();
+		return response;
+	}
+
 	public static Response getCustomerData(String id) {
 		Response response = webTarget
 				.path("get_customer_data").path(id).request()
