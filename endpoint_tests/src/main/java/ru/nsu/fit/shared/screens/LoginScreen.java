@@ -17,13 +17,18 @@ public class LoginScreen {
         logger = _logger;
     }
 
-    public static void fillFields (String login, String password) {
+    public static void openPage() {
         browser.openPage("http://localhost:8080/endpoint");
-        browser.waitForElement(By.id("email"));
 
-        browser.typeText(By.id("email"), "admin");
+    }
+
+    public static void fillFields (String login, String password) {
+        browser.waitForElement(By.id("email"));
+        browser.typeText(By.id("email"), login);
         //browser.getElement(By.id("email")).sendKeys("admin");
-        browser.typeText(By.id("password"), "setup");
+
+        browser.waitForElement(By.id("password"));
+        browser.typeText(By.id("password"), password);
         //browser.getElement(By.id("password")).sendKeys("setup");
     }
 
