@@ -29,7 +29,6 @@ public class WrongTopUpBalanceTest {
     private static final Logger logger = LoggerFactory.getLogger("UI_TEST_LOGGER");
     private Browser browser = null;
     private Customer testCustomer;
-    private Integer firstBalance;
 
     @BeforeClass
     public void beforeClass() {
@@ -93,7 +92,6 @@ public class WrongTopUpBalanceTest {
 
         logger.debug("Clicked Balance button");
 
-        firstBalance = BalanceScreen.getBalance();
         BalanceScreen.fillBalance(-100);
 
         AllureUtils.saveImageAttach("Balance field: ", browser.makeScreenshot());
