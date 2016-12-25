@@ -1,6 +1,7 @@
 var appPrefix = btoa('endpoint');
 var login = localStorage.getItem(appPrefix + 'login')
 var pass = localStorage.getItem(appPrefix + 'pass')
+var table;
 
 $(document).ready(function(){
     $("#home").click(function() {
@@ -42,7 +43,7 @@ $(document).ready(function(){
         }
 
         //$("#customer_list_id").html(data);
-        $('#plan_list_id')
+        table = $('#plan_list_id')
             .DataTable({
                 data: dataSet,
                 columns: [
@@ -60,7 +61,7 @@ $(document).ready(function(){
         if( $(this).hasClass('selected') ) {
             $(this).removeClass('selected');
         } else {
-            $("#plan_list_id").$('tr.selected').removeClass('selected');
+            table.$('tr.selected').removeClass('selected');
             $(this).addClass('selected');
         }
     });
